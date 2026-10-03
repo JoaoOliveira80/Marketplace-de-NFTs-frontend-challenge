@@ -7,8 +7,8 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+    <div className="home-placeholder">
       <Button>Explorar NFTs</Button>
-    </main>
+    </div>
   );
 }
