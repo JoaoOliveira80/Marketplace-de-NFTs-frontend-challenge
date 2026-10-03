@@ -1,14 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { MarketplaceHome } from "@/features/catalog/marketplace-home";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  component: MarketplaceHome,
 });
-
-function HomePage() {
-  return (
-    <div className="home-placeholder">
-      <Button>Explorar NFTs</Button>
-    </div>
-  );
-}

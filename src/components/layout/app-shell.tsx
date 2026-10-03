@@ -42,12 +42,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="desktop-actions" aria-label="Ações da conta">
-            <button className="icon-button" type="button" disabled aria-label="Buscar">
+            <button className="icon-button" type="button" aria-label="Buscar" onClick={() => window.dispatchEvent(new Event("kurio:catalog-search-focus"))}>
               <MagnifyingGlass aria-hidden="true" size={23} weight="regular" />
             </button>
-            <button className="icon-button cart-button" type="button" disabled aria-label="Carrinho vazio">
+            <button className="icon-button cart-button" type="button" disabled aria-label="Carrinho: 6 itens no exemplo">
               <ShoppingCart aria-hidden="true" size={23} weight="regular" />
-              <span className="cart-count" aria-hidden="true">0</span>
+              <span className="cart-count" aria-hidden="true">6</span>
             </button>
             <button className="sign-in-button" type="button" disabled>
               <SignIn aria-hidden="true" size={18} weight="regular" />
@@ -56,11 +56,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="mobile-search" role="search">
-            <button className="mobile-search__field" type="button" disabled aria-label="Buscar coleções">
+            <label className="mobile-search__field">
               <MagnifyingGlass aria-hidden="true" size={18} />
-              <span>Explorar coleções</span>
-            </button>
-            <button className="mobile-search__filter" type="button" disabled aria-label="Filtros">
+              <input
+                aria-label="Explorar coleções"
+                onChange={(event) => window.dispatchEvent(new CustomEvent("kurio:catalog-search", { detail: event.target.value }))}
+                placeholder="Explorar coleções"
+                type="search"
+              />
+            </label>
+            <button className="mobile-search__filter" type="button" aria-label="Filtros" onClick={() => window.dispatchEvent(new Event("kurio:catalog-filter-toggle"))}>
               <SlidersHorizontal aria-hidden="true" size={20} />
             </button>
           </div>
