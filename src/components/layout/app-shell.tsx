@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { sessionQueryOptions, useSignOut } from "@/features/auth/auth-api";
+import { cartQueryOptions, guestId } from "@/features/cart/cart-api";
 
 const primarySections = ["Mercado", "Criadores", "Aprenda"];
 
@@ -28,9 +29,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isDetail = pathname.startsWith("/nft/");
   const isAuth = pathname === "/login" || pathname === "/register";
   const isFavorites = pathname === "/favorites";
+  const isCart = pathname === "/cart";
   const navigate = useNavigate();
   const [signOutError, setSignOutError] = useState("");
   const session = useQuery(sessionQueryOptions);
+  const cartScope = session.data?.user ? `user-${session.data.user.id}` : `guest-${guestId()}`;
+  const cart = useQuery({ ...cartQueryOptions(cartScope), enabled: !session.isPending });
+  const cartCount = cart.data?.items.reduce((total, item) => total + item.quantity, 0) ?? 0;
   const signOut = useSignOut();
   useEffect(() => {
     if (isAuth) return;
@@ -52,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
-    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}`}>
+    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}${isCart ? " app-shell--cart" : ""}`}>
       <header className="site-header">
         <div className="site-header__inner">
           <Link className="brand" to="/" aria-label="Kurio — início">
@@ -63,17 +68,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link className="desktop-nav__link" to="/" activeOptions={{ exact: true }} aria-current={isHome ? "page" : undefined}>
               Início
             </Link>
-            {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
+            {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail || isCart ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
           </nav>
 
           <div className="desktop-actions" aria-label="Ações da conta">
             <button className="icon-button" type="button" aria-label="Buscar" onClick={() => window.dispatchEvent(new Event("kurio:catalog-search-focus"))}>
               <MagnifyingGlass aria-hidden="true" size={23} weight="regular" />
             </button>
-            <button className="icon-button cart-button" type="button" disabled aria-label="Carrinho: 6 itens no exemplo">
+            <Link className="icon-button cart-button" to="/cart" aria-label={`Carrinho: ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}>
               <ShoppingCart aria-hidden="true" size={23} weight="regular" />
-              <span className="cart-count" aria-hidden="true">6</span>
-            </button>
+              {cartCount > 0 && <span className="cart-count" aria-hidden="true">{cartCount}</span>}
+            </Link>
             <button className="sign-in-button" type="button" onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
               <SignIn aria-hidden="true" size={18} weight="regular" />
               {session.data?.user ? "Sair" : "Entrar"}
@@ -190,9 +195,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button className="mobile-bottom-nav__item mobile-bottom-nav__scanner" type="button" disabled aria-label="Ler código">
           <Scan aria-hidden="true" size={30} weight="regular" />
         </button>
-        <button className="mobile-bottom-nav__item" type="button" disabled aria-label="Carrinho">
+        <Link className={`mobile-bottom-nav__item${isCart ? " is-active" : ""}`} to="/cart" aria-label={`Carrinho: ${cartCount} ${cartCount === 1 ? "item" : "itens"}`} aria-current={isCart ? "page" : undefined}>
           <ShoppingCart aria-hidden="true" size={22} weight="regular" />
-        </button>
+        </Link>
         <button className="mobile-bottom-nav__item" type="button" aria-label={session.data?.user ? "Sair da conta" : "Entrar na conta"} onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
           <UserCircle aria-hidden="true" size={22} weight="regular" />
         </button>

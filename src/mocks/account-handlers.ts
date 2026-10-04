@@ -31,15 +31,15 @@ function publicUser(user: MockUser) {
   return { id: user.id, name: user.name, email: user.email };
 }
 
-function authError(code = "SESSION_EXPIRED") {
+export function authError(code = "SESSION_EXPIRED") {
   return HttpResponse.json<MockError>({ message: "Sua sessão expirou. Entre novamente para continuar.", code }, { status: 401 });
 }
 
-function tokenFrom(request: Request) {
+export function tokenFrom(request: Request) {
   return request.headers.get("Authorization")?.replace(/^Bearer /, "") ?? "";
 }
 
-function authenticatedUser(request: Request): MockUser | null {
+export function authenticatedUser(request: Request): MockUser | null {
   const token = tokenFrom(request);
   const activeSessions = sessions();
   const active = activeSessions[token];

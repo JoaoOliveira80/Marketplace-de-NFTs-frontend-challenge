@@ -8,6 +8,7 @@ import { nftQueryOptions } from "@/features/catalog/catalog-api";
 import { sessionQueryOptions } from "@/features/auth/auth-api";
 import { favoritesQueryOptions, useToggleFavorite } from "@/features/favorites/favorites-api";
 import { multiplyEth, type NftDetail } from "@/features/nft-detail/nft-detail-data";
+import { cartQueryOptions, guestId, useCartActions } from "@/features/cart/cart-api";
 
 export const Route = createFileRoute("/nft/$nftId")({ component: NftEntry });
 
@@ -34,12 +35,19 @@ function DetailContent({ nft }: { nft: NftDetail }) {
   const zoomCloseRef = useRef<HTMLButtonElement>(null);
   const [favoriteError, setFavoriteError] = useState(false);
   const [copyMessage, setCopyMessage] = useState("");
+  const [cartError, setCartError] = useState("");
+  const [cartMessage, setCartMessage] = useState("");
   const edition = nft.editions.find((item) => item.id === selectedEdition) ?? nft.editions[0];
   const totalPrice = multiplyEth(edition.priceEth, quantity);
   const session = useQuery(sessionQueryOptions);
+  const cartScope = session.data?.user ? `user-${session.data.user.id}` : `guest-${guestId()}`;
+  const cart = useQuery({ ...cartQueryOptions(cartScope), enabled: !session.isPending });
+  const alreadyInCart = cart.data?.items.find((item) => item.nftId === nft.id && item.editionId === edition.id)?.quantity ?? 0;
+  const remainingToAdd = Math.max(0, edition.available - alreadyInCart);
   const userId = session.data?.user?.id ?? "guest";
   const favorites = useQuery({ ...favoritesQueryOptions(userId), enabled: Boolean(session.data?.user) });
   const toggleFavorite = useToggleFavorite(userId);
+  const cartActions = useCartActions();
   const isFavorite = favorites.data?.ids.includes(nft.id) ?? false;
 
   useEffect(() => {
@@ -75,6 +83,16 @@ function DetailContent({ nft }: { nft: NftDetail }) {
     toggleFavorite.mutate({ nftId: nft.id, favorite: !isFavorite }, { onError: () => setFavoriteError(true) });
   };
 
+  const addToCart = (openCart: boolean) => {
+    if (remainingToAdd < quantity) return;
+    setCartError("");
+    setCartMessage("");
+    cartActions.add.mutate({ nftId: nft.id, editionId: edition.id, quantity }, {
+      onSuccess: () => { if (openCart) void navigate({ to: "/cart" }); else setCartMessage("NFT adicionado ao carrinho."); },
+      onError: () => setCartError("Não foi possível adicionar esta edição ao carrinho. Verifique a disponibilidade e tente novamente."),
+    });
+  };
+
   const favoriteButton = (mobile: boolean) => <button
     className={mobile ? "nft-detail__round-action nft-detail__mobile-heart" : "nft-detail__favorite-button"}
     type="button"
@@ -107,8 +125,9 @@ function DetailContent({ nft }: { nft: NftDetail }) {
         <div className="nft-detail__desktop-price"><strong>{edition.priceEth} ETH</strong><span>★★★★★ {nft.reviewCount} avaliações de colecionadores</span></div>
         <div className="nft-detail__intro"><h2>Sobre este NFT:</h2><p>{nft.description}</p></div>
         <div className="nft-detail__editions"><strong>Edição:</strong><div role="group" aria-label="Escolha a edição">{nft.editions.map((item) => <button type="button" key={item.id} className={item.id === selectedEdition ? "is-selected" : ""} aria-pressed={item.id === selectedEdition} onClick={() => { setSelectedEdition(item.id); setQuantity(1); }}>{item.label}</button>)}</div></div>
-        {edition.available === 0 ? <p className="nft-detail__availability" role="status">Esta edição está esgotada.</p> : <p className="nft-detail__availability">{edition.available} disponíveis nesta edição</p>}
-        <div className="nft-detail__desktop-controls"><QuantityControl quantity={quantity} available={edition.available} onChange={setQuantity} /><div className="nft-detail__purchase-actions"><button className="nft-detail__buy" type="button" disabled title="Compra disponível em breve">COMPRAR</button>{favoriteButton(false)}</div></div>
+        {edition.available === 0 ? <p className="nft-detail__availability" role="status">Esta edição está esgotada.</p> : <p className="nft-detail__availability">{edition.available} disponíveis nesta edição{alreadyInCart > 0 ? ` · ${alreadyInCart} no carrinho` : ""}{remainingToAdd === 0 ? " · limite atingido" : ""}</p>}
+        <div className="nft-detail__desktop-controls"><QuantityControl quantity={quantity} available={remainingToAdd} onChange={setQuantity} /><div className="nft-detail__purchase-actions"><button className="nft-detail__buy" type="button" disabled={remainingToAdd < quantity || cart.isPending || cartActions.add.isPending} onClick={() => addToCart(true)}>COMPRAR</button>{favoriteButton(false)}</div></div>
+        {cartError && <p className="nft-detail__favorite-error" role="alert">{cartError}</p>}{cartMessage && <p role="status">{cartMessage}</p>}
         {favoriteError && <p className="nft-detail__favorite-error" role="alert">Não foi possível atualizar os favoritos. Tente novamente.</p>}
         <dl className="nft-detail__metadata"><div><dt>ID do token:</dt><dd>#{nft.tokenId}</dd></div><div><dt>Coleção:</dt><dd>{nft.collection}</dd></div><div><dt>Atributos:</dt><dd>{nft.attributes.join(", ")}</dd></div></dl>
         <div className="nft-detail__share"><strong>Compartilhar este NFT:</strong> <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(window.location.href); setCopyMessage("Link copiado"); } catch { setCopyMessage("Não foi possível copiar o link"); } }}>Copiar link</button><span role="status">{copyMessage}</span></div>
@@ -119,7 +138,7 @@ function DetailContent({ nft }: { nft: NftDetail }) {
       {activeTab === "details" ? <div className="nft-detail__prose"><p>{nft.details[0]}</p><p>{nft.details[1]}</p><strong>Rede:</strong><p>Cunhado na {nft.network} com procedência imutável e metadados armazenados no IPFS.</p><strong>Contrato:</strong><p>Direitos autorais do criador: 5% nas vendas secundárias, pagos automaticamente pelos mercados compatíveis.</p><strong>Direitos autorais:</strong><p>Contrato inteligente verificado.</p></div> : <div className="nft-detail__reviews" role="tabpanel">{nft.reviews.map((review) => <article key={review.author}><strong>{review.author}</strong><span aria-label={`${review.rating} de 5 estrelas`}>★★★★★</span><p>{review.text}</p></article>)}</div>}
       <section className="nft-detail__related" aria-labelledby="related-title"><h2 id="related-title">Mais desta coleção</h2><div>{nft.related.map((item) => <Link to="/nft/$nftId" params={{ nftId: item.id }} key={item.id}><span><img src={item.image} alt="" /></span><strong>{item.name} #{item.tokenId}</strong><b>{item.priceEth} ETH</b></Link>)}</div></section>
     </div>
-    <div className="nft-detail__mobile-buy"><div><span>Qtd.</span><QuantityControl quantity={quantity} available={edition.available} onChange={setQuantity} /><strong>{totalPrice} ETH</strong></div><div><button className="nft-detail__buy" type="button" disabled title="Compra disponível em breve">Comprar NFT</button><button className="nft-detail__mobile-cart" type="button" disabled aria-label="Adicionar ao carrinho"><ShoppingCart size={22} /></button></div></div>
+    <div className="nft-detail__mobile-buy"><div><span>Qtd.</span><QuantityControl quantity={quantity} available={remainingToAdd} onChange={setQuantity} /><strong>{totalPrice} ETH</strong></div><div><button className="nft-detail__buy" type="button" disabled={remainingToAdd < quantity || cart.isPending || cartActions.add.isPending} onClick={() => addToCart(true)}>Comprar NFT</button><button className="nft-detail__mobile-cart" type="button" disabled={remainingToAdd < quantity || cart.isPending || cartActions.add.isPending} aria-label="Adicionar ao carrinho" onClick={() => addToCart(false)}><ShoppingCart size={22} /></button></div></div>
     {zoomOpen && <div className="nft-detail__zoom" role="dialog" aria-modal="true" aria-label="Imagem ampliada" onClick={() => setZoomOpen(false)}><button ref={zoomCloseRef} type="button" aria-label="Fechar imagem ampliada" onClick={() => setZoomOpen(false)}><X size={24} /></button><div className="nft-detail__zoom-artwork" onClick={(event) => event.stopPropagation()}><img src={nft.gallery[selectedImage].image} style={galleryImageStyle(nft.gallery[selectedImage])} alt={nft.gallery[selectedImage].alt} /></div></div>}
   </section>;
 }

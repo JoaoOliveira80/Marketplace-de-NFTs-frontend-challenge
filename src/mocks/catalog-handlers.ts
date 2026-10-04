@@ -4,6 +4,7 @@ import type { CatalogNft } from "@/features/catalog/catalog-data";
 import type { CatalogResponse } from "@/features/catalog/catalog-api";
 import { parseCatalogSearch } from "@/features/catalog/catalog-search";
 import type { NftDetail } from "@/features/nft-detail/nft-detail-data";
+import { nftEditions } from "./nft-inventory";
 
 const PAGE_SIZE = 9;
 
@@ -38,14 +39,7 @@ export const catalogHandlers = [
         { image: nft.image, alt: `Detalhe inferior de ${nft.name} #${nft.tokenId}`, cropScale: 1.7, cropOrigin: "50% 80%" },
         { image: nft.image, alt: `Visão aproximada de ${nft.name} #${nft.tokenId}`, cropScale: 1.25, cropOrigin: "68% 48%" },
       ],
-      editions: emerald
-        ? [
-            { id: "unique", label: "1/1", priceEth: "3.99", available: 0 },
-            { id: "ten", label: "1/10", priceEth: "1.89", available: 3 },
-            { id: "fifty", label: "1/50", priceEth: nft.priceEth, available: 8 },
-            { id: "open", label: "ABERTA", priceEth: "0.89", available: 100 },
-          ]
-        : [{ id: "default", label: nft.edition, priceEth: nft.priceEth, available: nft.id === "violet-nomad-0314" ? 1 : 6 }],
+      editions: nftEditions(nft),
       collection: "Kurio Apes",
       attributes: emerald ? ["Óculos", "Esmeralda", "Raro"] : [nft.category, nft.network],
       rating: "4.8",

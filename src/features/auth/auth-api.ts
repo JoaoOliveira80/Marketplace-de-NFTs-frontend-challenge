@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import { mergeGuestCart } from "@/features/cart/cart-api";
 
 export interface SessionUser {
   id: string;
@@ -19,10 +20,11 @@ export const sessionQueryOptions = queryOptions({
   retry: false,
 });
 
-function establishSession(queryClient: QueryClient, response: AuthResponse) {
+async function establishSession(queryClient: QueryClient, response: AuthResponse) {
   window.localStorage.setItem("kurio-session-token", response.token);
   queryClient.clear();
   queryClient.setQueryData(["session"], { user: response.user });
+  try { await mergeGuestCart(); } catch { /* The cart query retries this merge while guest items remain stored. */ }
 }
 
 export function useSignIn() {
