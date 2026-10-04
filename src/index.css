@@ -2579,3 +2579,137 @@ button:focus-visible {
     padding-bottom: 3px;
   }
 }
+
+/* NFT detail */
+.nft-detail { position: relative; width: min(100% - 48px, 1200px); margin: 0 auto; padding: 30px 0 110px; }
+.nft-detail__breadcrumb { display: flex; gap: 10px; margin-bottom: 12px; font-size: 14px; font-weight: 700; }
+.nft-detail__breadcrumb a { color: inherit; text-decoration: none; }
+.nft-detail__top { display: grid; grid-template-columns: minmax(0, 573px) minmax(0, 595px); gap: 32px; }
+.nft-detail__gallery { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 28px; min-width: 0; }
+.nft-detail__thumbnails { display: flex; flex-direction: column; gap: 14px; }
+.nft-detail__thumbnails button { width: 100px; height: 100px; overflow: hidden; padding: 0; border: 2px solid transparent; border-radius: 6px; background: var(--card); cursor: pointer; }
+.nft-detail__thumbnails button.is-selected { border-color: var(--primary); }
+.nft-detail__thumbnails img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.nft-detail__artwork { position: relative; height: 444px; overflow: hidden; padding: 20px; border-radius: 6px; background: var(--card); }
+.nft-detail__artwork > img { display: block; width: 100%; height: 100%; border-radius: 18px; object-fit: cover; }
+.nft-detail__artwork > button { position: absolute; top: 15px; right: 15px; display: grid; width: 30px; height: 30px; place-items: center; border: 0; border-radius: 50%; background: #241612c9; color: var(--foreground); cursor: pointer; }
+.nft-detail__gallery-dots { display: none; }
+.nft-detail__info { min-width: 0; font-size: 14px; }
+.nft-detail__title-row h1 { margin: 0; font-size: 28px; line-height: 1.3; }
+.nft-detail__rating { display: none; }
+.nft-detail__desktop-price { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 8px 0 5px; border-bottom: 1px solid var(--border); }
+.nft-detail__desktop-price strong { color: var(--primary); font-size: 20px; }
+.nft-detail__desktop-price span { color: var(--muted-foreground); font-size: 13px; }
+.nft-detail__intro h2 { margin: 12px 0 7px; font-size: 14px; }
+.nft-detail__intro p { max-width: 570px; margin: 0; color: var(--muted-foreground); line-height: 1.55; }
+.nft-detail__editions { margin-top: 9px; }
+.nft-detail__editions strong { display: block; margin-bottom: 7px; }
+.nft-detail__editions > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.nft-detail__editions button { min-width: 40px; padding: 4px 9px; border: 1px solid #67402a; border-radius: 20px; background: transparent; color: var(--muted-foreground); font: inherit; font-size: 12px; cursor: pointer; }
+.nft-detail__editions button.is-selected { border-color: var(--primary); color: var(--primary); }
+.nft-detail__availability { min-height: 16px; margin: 5px 0; color: var(--muted-foreground); font-size: 11px; }
+.nft-detail__desktop-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 6px 0 10px; }
+.nft-quantity { display: inline-flex; align-items: center; gap: 12px; }
+.nft-quantity button { display: grid; width: 30px; height: 40px; place-items: center; padding: 0; border: 0; border-radius: 16px; background: var(--primary); color: var(--background); cursor: pointer; }
+.nft-quantity button:disabled { opacity: .45; cursor: default; }
+.nft-quantity span { min-width: 12px; text-align: center; }
+.nft-detail__purchase-actions { display: flex; gap: 8px; }
+.nft-detail__buy { min-height: 42px; padding: 0 34px; border: 0; border-radius: 5px; background: var(--primary); color: var(--primary-foreground); font: inherit; font-weight: 700; }
+.nft-detail__buy:disabled { opacity: 1; cursor: not-allowed; }
+.nft-detail__favorite-button { display: inline-flex; min-height: 42px; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid var(--primary); border-radius: 5px; background: transparent; color: var(--primary); font: inherit; cursor: pointer; }
+.nft-detail__favorite-error { color: #f0a38e; }
+.nft-detail__metadata { display: grid; gap: 7px; margin: 12px 0; color: var(--muted-foreground); }
+.nft-detail__metadata > div { display: flex; gap: 6px; }
+.nft-detail__metadata dt,.nft-detail__metadata dd { margin: 0; }
+.nft-detail__share { font-size: 13px; }
+.nft-detail__share button { border: 0; background: transparent; color: var(--primary); font: inherit; cursor: pointer; }
+.nft-detail__share span { margin-left: 6px; color: var(--muted-foreground); }
+.nft-detail__below { margin-top: 90px; }
+.nft-detail__tabs { display: flex; gap: 34px; border-bottom: 1px solid var(--border); }
+.nft-detail__tabs button { min-height: 40px; padding: 0; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--foreground); font: inherit; font-weight: 700; cursor: pointer; }
+.nft-detail__tabs button.is-selected { border-bottom-color: var(--primary); color: var(--primary); }
+.nft-detail__prose { min-height: 300px; padding-top: 14px; color: var(--muted-foreground); font-size: 14px; line-height: 1.6; }
+.nft-detail__prose p { margin: 0 0 21px; }
+.nft-detail__prose strong { color: var(--foreground); }
+.nft-detail__prose strong + p { margin: 2px 0 10px; }
+.nft-detail__reviews { display: grid; min-height: 300px; align-content: start; gap: 16px; padding-top: 18px; }
+.nft-detail__reviews article { padding: 16px; background: var(--card); }
+.nft-detail__reviews span { margin-left: 14px; color: var(--primary); }
+.nft-detail__reviews p { margin-bottom: 0; color: var(--muted-foreground); }
+.nft-detail__related { margin-top: 65px; }
+.nft-detail__related h2 { margin: 0 0 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--primary); font-size: 17px; }
+.nft-detail__related > div { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+.nft-detail__related a { display: flex; min-width: 0; flex-direction: column; color: var(--foreground); font-size: 13px; text-decoration: none; }
+.nft-detail__related a > span { display: block; padding: 8px; background: var(--card); }
+.nft-detail__related img { display: block; width: 100%; aspect-ratio: 1; border-radius: 14px; object-fit: cover; }
+.nft-detail__related strong { overflow: hidden; margin-top: 9px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.nft-detail__related b { color: var(--primary); }
+.nft-detail__mobile-actions,.nft-detail__mobile-buy { display: none; }
+.nft-detail__zoom { position: fixed; z-index: 30; inset: 0; display: grid; place-items: center; padding: 40px; background: #0b0706e8; }
+.nft-detail__zoom-artwork { width: min(85vw, 72vh, 720px); aspect-ratio: 1; overflow: hidden; border-radius: 18px; }
+.nft-detail__zoom-artwork img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.nft-detail__zoom button { position: absolute; top: 24px; right: 24px; border: 0; background: transparent; color: white; cursor: pointer; }
+.nft-detail--loading { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; min-height: 600px; }
+.nft-detail--loading > div:first-child { height: 444px; }
+.nft-detail--error { min-height: 55vh; }
+.nft-detail--error a { color: var(--primary); }
+.nft-detail--error h1 { margin-top: 40px; }
+.nft-detail--error button { padding: 10px 16px; border: 1px solid var(--primary); background: transparent; color: var(--primary); cursor: pointer; }
+.auth-backdrop { position: fixed; z-index: 40; inset: 0; display: grid; place-items: center; padding: 20px; background: #080504ba; }
+.auth-dialog { position: relative; width: min(100%, 430px); padding: 40px; border-bottom: 6px solid var(--primary); border-radius: 8px; background: var(--card); }
+.auth-dialog__close { position: absolute; top: 15px; right: 15px; border: 0; background: transparent; color: var(--primary); cursor: pointer; }
+.auth-dialog h2 { margin: 0 0 16px; text-align: center; font-size: 22px; }
+.auth-dialog > p { color: var(--muted-foreground); font-size: 13px; text-align: center; }
+.auth-dialog form { display: grid; gap: 12px; margin-top: 24px; }
+.auth-dialog label { display: grid; gap: 6px; font-size: 13px; }
+.auth-dialog input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--foreground); font: inherit; }
+.auth-dialog form > button { height: 44px; margin-top: 8px; border: 0; border-radius: 4px; background: var(--primary); color: var(--background); font: inherit; font-weight: 700; cursor: pointer; }
+.auth-dialog__error { margin: 0; color: #f0a38e; font-size: 12px; }
+.auth-dialog .auth-dialog__demo { margin: 22px 0 0; font-size: 11px; }
+
+@media (max-width: 900px) and (min-width: 821px) {
+  .nft-detail__gallery { grid-template-columns: 65px minmax(0, 1fr); gap: 10px; }
+  .nft-detail__thumbnails button { width: 65px; height: 65px; }
+  .nft-detail__artwork { height: auto; aspect-ratio: 1; padding: 10px; }
+  .nft-detail__desktop-controls { flex-wrap: wrap; }
+  .nft-detail__related > div { gap: 10px; }
+}
+
+@media (max-width: 820px) {
+  .app-shell--detail .site-header,.app-shell--detail .site-footer,.app-shell--detail .mobile-bottom-nav { display: none; }
+  .app-shell--detail { background: radial-gradient(ellipse at 50% 0%, #37221b 0, #140d0a 52%); }
+  .nft-detail { width: 100%; min-height: 100dvh; padding: 0 0 165px; }
+  .nft-detail__breadcrumb,.nft-detail__thumbnails,.nft-detail__desktop-price,.nft-detail__intro h2,.nft-detail__availability,.nft-detail__desktop-controls,.nft-detail__share,.nft-detail__below { display: none; }
+  .nft-detail__mobile-actions { position: absolute; z-index: 2; top: 22px; left: 50%; display: flex; width: min(calc(100% - 48px), 512px); justify-content: space-between; transform: translateX(-50%); }
+  .nft-detail__round-action { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #533022; border-radius: 50%; background: #2a1914; color: var(--primary); cursor: pointer; }
+  .nft-detail__top { display: block; }
+  .nft-detail__gallery { display: block; width: min(100%, 560px); margin-inline: auto; padding: 70px 24px 0; }
+  .nft-detail__artwork { width: 100%; height: auto; aspect-ratio: 1; padding: 0; overflow: hidden; border-radius: 27px 27px 0 0; background: transparent; }
+  .nft-detail__artwork > img { border-radius: 27px 27px 0 0; }
+  .nft-detail__artwork > button { display: none; }
+  .nft-detail__gallery-dots { position: absolute; right: 0; bottom: 17px; left: 0; display: flex; justify-content: center; gap: 8px; }
+  .nft-detail__gallery-dots button { width: 8px; height: 8px; padding: 0; border: 1px solid var(--primary); border-radius: 50%; background: #241612b8; cursor: pointer; }
+  .nft-detail__gallery-dots button.is-selected { background: var(--primary); }
+  .nft-detail__info { position: relative; width: min(100%, 600px); min-height: 375px; margin: -1px auto 0; padding: 30px 24px 30px; border-radius: 32px 32px 0 0; background: #241612; }
+  .nft-detail__title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nft-detail__title-row h1 { font-size: clamp(18px, 5vw, 23px); white-space: nowrap; }
+  .nft-detail__rating { display: inline-flex; align-items: center; gap: 3px; padding: 3px 7px; border: 1px solid var(--primary); border-radius: 16px; font-size: 12px; white-space: nowrap; }
+  .nft-detail__rating svg { color: var(--primary); }
+  .nft-detail__intro p { margin-top: 18px; font-size: 13px; line-height: 1.6; }
+  .nft-detail__editions { margin-top: 16px; }
+  .nft-detail__editions strong { margin-bottom: 9px; font-size: 14px; }
+  .nft-detail__editions button { font-size: 12px; }
+  .nft-detail__availability[role="status"] { display: block; color: #f0a38e; }
+  .nft-detail__metadata { gap: 10px; margin-top: 18px; font-size: 13px; }
+  .nft-detail__mobile-buy { position: fixed; z-index: 3; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 600px); gap: 15px; margin-inline: auto; padding: 16px 24px max(22px, env(safe-area-inset-bottom)); border-radius: 32px 32px 0 0; background: #2b1a14; box-shadow: 0 -8px 30px #140d0a77; }
+  .nft-detail__mobile-buy > div { display: flex; align-items: center; gap: 10px; }
+  .nft-detail__mobile-buy > div:first-child > span { color: var(--muted-foreground); }
+  .nft-detail__mobile-buy strong { margin-left: auto; color: var(--primary); font-size: 17px; }
+  .nft-detail__mobile-buy .nft-quantity button { width: 22px; height: 29px; border-radius: 12px; }
+  .nft-detail__mobile-buy .nft-quantity { gap: 8px; }
+  .nft-detail__mobile-buy .nft-detail__buy { flex: 1; min-height: 52px; border-radius: 28px; font-size: 15px; }
+  .nft-detail__mobile-cart { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: #332019; color: var(--muted-foreground); }
+  .nft-detail--loading { display: block; padding: 70px 24px; }
+  .nft-detail--loading > div:first-child { width: 100%; height: auto; aspect-ratio: 1; }
+  .nft-detail--error { padding: 50px 24px; }
+}

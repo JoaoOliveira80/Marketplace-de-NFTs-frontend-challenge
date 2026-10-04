@@ -14,7 +14,11 @@ import {
   YoutubeLogo,
 } from "@phosphor-icons/react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { AuthDialog } from "@/features/auth/auth-dialog";
+import { sessionQueryOptions, useSignOut } from "@/features/auth/auth-api";
 
 const primarySections = ["Mercado", "Criadores", "Aprenda"];
 
@@ -22,10 +26,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const searchStr = useRouterState({ select: (state) => state.location.searchStr });
   const isHome = pathname === "/";
+  const isDetail = pathname.startsWith("/nft/");
+  const [authOpen, setAuthOpen] = useState(false);
+  const closeAuth = useCallback(() => setAuthOpen(false), []);
+  const session = useQuery(sessionQueryOptions);
+  const signOut = useSignOut();
+  useEffect(() => {
+    const open = () => setAuthOpen(true);
+    window.addEventListener("kurio:auth-open", open);
+    return () => window.removeEventListener("kurio:auth-open", open);
+  }, []);
   const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
-    <div className="app-shell">
+    <div className={isDetail ? "app-shell app-shell--detail" : "app-shell"}>
       <header className="site-header">
         <div className="site-header__inner">
           <Link className="brand" to="/" aria-label="Kurio — início">
@@ -36,11 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link className="desktop-nav__link" to="/" aria-current={isHome ? "page" : undefined}>
               Início
             </Link>
-            {primarySections.map((section) => (
-              <span className="desktop-nav__link" key={section}>
-                {section}
-              </span>
-            ))}
+            {primarySections.map((section) => section === "Mercado" ? <Link className="desktop-nav__link" to="/" key={section} aria-current={isDetail ? "page" : undefined}>Mercado</Link> : <span className="desktop-nav__link" key={section}>{section}</span>)}
           </nav>
 
           <div className="desktop-actions" aria-label="Ações da conta">
@@ -51,9 +61,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <ShoppingCart aria-hidden="true" size={23} weight="regular" />
               <span className="cart-count" aria-hidden="true">6</span>
             </button>
-            <button className="sign-in-button" type="button" disabled>
+            <button className="sign-in-button" type="button" onClick={session.data?.user ? signOut : () => setAuthOpen(true)}>
               <SignIn aria-hidden="true" size={18} weight="regular" />
-              Entrar
+              {session.data?.user ? "Sair" : "Entrar"}
             </button>
           </div>
 
@@ -169,10 +179,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button className="mobile-bottom-nav__item" type="button" disabled aria-label="Carrinho">
           <ShoppingCart aria-hidden="true" size={22} weight="regular" />
         </button>
-        <button className="mobile-bottom-nav__item" type="button" disabled aria-label="Conta">
+        <button className="mobile-bottom-nav__item" type="button" aria-label={session.data?.user ? "Sair da conta" : "Entrar na conta"} onClick={session.data?.user ? signOut : () => setAuthOpen(true)}>
           <UserCircle aria-hidden="true" size={22} weight="regular" />
         </button>
       </nav>
+      <AuthDialog open={authOpen} onClose={closeAuth} />
     </div>
   );
 }

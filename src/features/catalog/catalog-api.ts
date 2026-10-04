@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { CatalogNft } from "./catalog-data";
+import type { NftDetail } from "@/features/nft-detail/nft-detail-data";
 import type { CatalogSearch } from "./catalog-search";
 
 export interface CatalogResponse {
@@ -27,8 +28,8 @@ export const catalogQueryOptions = (search: CatalogSearch) => queryOptions({
 
 export const nftQueryOptions = (id: string) => queryOptions({
   queryKey: ["nft", id],
-  queryFn: async ({ signal }): Promise<CatalogNft> => {
-    const response = await api.get<CatalogNft>(`/nfts/${encodeURIComponent(id)}`, { signal });
+  queryFn: async ({ signal }): Promise<NftDetail> => {
+    const response = await api.get<NftDetail>(`/nfts/${encodeURIComponent(id)}`, { signal });
     return response.data;
   },
   retry: false,
