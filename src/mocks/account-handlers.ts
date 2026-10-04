@@ -93,6 +93,11 @@ export const accountHandlers = [
     const token = tokenFrom(request);
     const activeSessions = sessions();
     if (token && activeSessions[token]) {
+      const walletKey = `kurio-wallet-state-${activeSessions[token].userId}`;
+      try {
+        const wallets = JSON.parse(localStorage.getItem(walletKey) ?? "") as { wallets?: unknown[]; connectedWalletId?: string | null };
+        if (Array.isArray(wallets.wallets)) localStorage.setItem(walletKey, JSON.stringify({ ...wallets, connectedWalletId: null, connectedProvider: null }));
+      } catch { /* No saved wallet connection. */ }
       delete activeSessions[token];
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(activeSessions));
     }

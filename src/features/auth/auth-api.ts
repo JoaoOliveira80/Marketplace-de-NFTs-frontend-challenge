@@ -50,6 +50,11 @@ export function useSignOut() {
   return useMutation({
     mutationFn: async () => { await api.post("/session/logout"); },
     onSuccess: () => {
+      const userId = queryClient.getQueryData<SessionResponse>(["session"])?.user?.id;
+      if (userId) {
+        window.sessionStorage.removeItem(`kurio-checkout-draft-${userId}`);
+        window.sessionStorage.removeItem(`kurio-checkout-wallet-${userId}`);
+      }
       window.localStorage.removeItem("kurio-session-token");
       queryClient.clear();
       queryClient.setQueryData(["session"], { user: null });

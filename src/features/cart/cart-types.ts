@@ -20,6 +20,7 @@ export interface QuotedItem extends CartItem {
 }
 
 export interface CartQuote {
+  revision: string;
   items: QuotedItem[];
   coupon: string | null;
   subtotalEth: string;

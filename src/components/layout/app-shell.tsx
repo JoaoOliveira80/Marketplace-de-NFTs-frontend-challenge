@@ -30,6 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isAuth = pathname === "/login" || pathname === "/register";
   const isFavorites = pathname === "/favorites";
   const isCart = pathname === "/cart";
+  const isCheckout = pathname === "/checkout";
   const navigate = useNavigate();
   const [signOutError, setSignOutError] = useState("");
   const session = useQuery(sessionQueryOptions);
@@ -50,14 +51,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const leaveAccount = () => {
     setSignOutError("");
     signOut.mutate(undefined, {
-      onSuccess: () => { if (isFavorites) void navigate({ to: "/" }); },
+      onSuccess: () => { if (isFavorites || isCheckout) void navigate({ to: "/" }); },
       onError: () => setSignOutError("Não foi possível sair. Tente novamente."),
     });
   };
   const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
-    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}${isCart ? " app-shell--cart" : ""}`}>
+    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}${isCart ? " app-shell--cart" : ""}${isCheckout ? " app-shell--checkout" : ""}`}>
       <header className="site-header">
         <div className="site-header__inner">
           <Link className="brand" to="/" aria-label="Kurio — início">
@@ -68,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link className="desktop-nav__link" to="/" activeOptions={{ exact: true }} aria-current={isHome ? "page" : undefined}>
               Início
             </Link>
-            {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail || isCart ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
+            {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail || isCart || isCheckout ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
           </nav>
 
           <div className="desktop-actions" aria-label="Ações da conta">

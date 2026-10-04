@@ -51,7 +51,8 @@ function quoteFor(cart: CartResponse): CartQuote {
   });
   const discount = cart.coupon ? subtotal * (PROMOTIONS[cart.coupon] ?? 0n) / 100n : 0n;
   const fee = items.length ? ethUnits("0.016") : 0n;
-  return { items, coupon: cart.coupon, subtotalEth: ethString(subtotal), discountEth: ethString(discount), networkFeeEth: ethString(fee), totalEth: ethString(subtotal - discount + fee), valid: issues.length === 0, issues };
+  const values = { items, coupon: cart.coupon, subtotalEth: ethString(subtotal), discountEth: ethString(discount), networkFeeEth: ethString(fee), totalEth: ethString(subtotal - discount + fee), valid: issues.length === 0, issues };
+  return { ...values, revision: JSON.stringify(values) };
 }
 
 function scenarioFailure(request: Request) {
@@ -72,6 +73,14 @@ export const cartHandlers = [
     if (!scope) return authError();
     if (scenarioFailure(request)) return HttpResponse.json({ message: "Não foi possível calcular a cotação." }, { status: 503 });
     return HttpResponse.json(quoteFor(readCart(scope)));
+  }),
+  http.post("/api/cart/quote/revalidate", async ({ request }) => {
+    await delay(240);
+    const user = authenticatedUser(request);
+    if (!user) return authError();
+    const { revision } = await request.json() as { revision?: string };
+    const quote = quoteFor(readCart(`user-${user.id}`));
+    return HttpResponse.json({ quote, changed: quote.revision !== revision });
   }),
   http.post("/api/cart/items", async ({ request }) => {
     await delay(220);
