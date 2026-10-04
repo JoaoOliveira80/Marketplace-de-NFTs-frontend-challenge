@@ -146,6 +146,10 @@ const nextPageNfts: CatalogNft[] = [
   ["emerald-study", "Emerald Study", "0477", "1.79", "/nfts/emerald-ape.png", "Colecionáveis", "Ethereum"],
   ["still-water", "Still Water", "0138", "0.69", "/nfts/sage-nomad.png", "Fotografia", "Polygon"],
   ["stone-guardian", "Stone Guardian", "0064", "1.29", "/nfts/ivory-baron.png", "Arte 3D", "Solana"],
+  ["fractal-garden", "Fractal Garden", "0501", "1.69", "/nfts/emerald-ape.png", "Generativa", "Ethereum"],
+  ["pixel-quest", "Pixel Quest", "0502", "0.49", "/nfts/golden-beat.png", "Jogos", "Polygon"],
+  ["studio-pass", "Studio Pass", "0503", "0.39", "/nfts/sage-nomad.png", "Assinaturas", "Solana"],
+  ["kurio-key", "Kurio Key", "0504", "0.29", "/nfts/ivory-baron.png", "Utilidade", "Ethereum"],
 ].map(([id, name, tokenId, priceEth, image, category, network], index) => ({
   id,
   name,
@@ -162,15 +166,15 @@ const nextPageNfts: CatalogNft[] = [
 export const catalogNfts = [...featuredNfts, ...nextPageNfts];
 
 export const catalogCategories = [
-  { label: "Arte digital", count: 33 },
-  { label: "Fotografia", count: 12 },
-  { label: "Música", count: 65 },
-  { label: "Arte 3D", count: 39 },
-  { label: "Colecionáveis", count: 23 },
-  { label: "Generativa", count: 17 },
-  { label: "Jogos", count: 19 },
-  { label: "Assinaturas", count: 13 },
-  { label: "Utilidade", count: 18 },
+  "Arte digital",
+  "Fotografia",
+  "Música",
+  "Arte 3D",
+  "Colecionáveis",
+  "Generativa",
+  "Jogos",
+  "Assinaturas",
+  "Utilidade",
 ];
 
 export const featuredNft = featuredNfts[0];

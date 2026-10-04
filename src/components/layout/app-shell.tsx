@@ -20,7 +20,9 @@ const primarySections = ["Mercado", "Criadores", "Aprenda"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const searchStr = useRouterState({ select: (state) => state.location.searchStr });
   const isHome = pathname === "/";
+  const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
     <div className="app-shell">
@@ -63,6 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onChange={(event) => window.dispatchEvent(new CustomEvent("kurio:catalog-search", { detail: event.target.value }))}
                 placeholder="Explorar coleções"
                 type="search"
+                value={mobileQuery}
               />
             </label>
             <button className="mobile-search__filter" type="button" aria-label="Filtros" onClick={() => window.dispatchEvent(new Event("kurio:catalog-filter-toggle"))}>

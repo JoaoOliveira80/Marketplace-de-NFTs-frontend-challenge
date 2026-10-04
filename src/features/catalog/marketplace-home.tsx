@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import {
   ArrowRight,
   CaretLeft,
@@ -13,13 +15,10 @@ import {
   featuredNft,
   type CatalogNft,
 } from "@/features/catalog/catalog-data";
+import { catalogQueryOptions } from "@/features/catalog/catalog-api";
+import type { CatalogSearch, CatalogTab } from "@/features/catalog/catalog-search";
 
-const PAGE_SIZE = 9;
-const networkCounts = [
-  { label: "Ethereum", count: 119 },
-  { label: "Polygon", count: 78 },
-  { label: "Solana", count: 86 },
-] as const;
+const networkLabels = ["Ethereum", "Polygon", "Solana"] as const;
 
 const sortOptions = [
   { value: "recent", label: "Listados recentemente" },
@@ -30,15 +29,9 @@ const sortOptions = [
 const slides = [featuredNft, catalogNfts[1], catalogNfts[2]];
 
 export function MarketplaceHome() {
-  const [activeTab, setActiveTab] = useState("Todos os NFTs");
-  const [category, setCategory] = useState<string | null>(null);
-  const [networks, setNetworks] = useState<string[]>([]);
-  const [minPrice, setMinPrice] = useState(0.02);
-  const [maxPrice, setMaxPrice] = useState(12.3);
-  const [appliedRange, setAppliedRange] = useState<[number, number]>([0.02, 12.3]);
-  const [sort, setSort] = useState<(typeof sortOptions)[number]["value"]>("recent");
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const filters = useSearch({ from: "/" });
+  const navigate = useNavigate({ from: "/" });
+  const { data, isPending, isError, isFetching, refetch } = useQuery(catalogQueryOptions(filters));
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -46,11 +39,27 @@ export function MarketplaceHome() {
   const mobileFilterCloseRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const activeSlide = slides[slideIndex];
+  const networks = filters.network.split(",").filter(Boolean);
+  const appliedRange: [number, number] = [filters.minPrice, filters.maxPrice];
+  const tabs: { label: string; value: CatalogTab }[] = [
+    { label: "Todos os NFTs", value: "all" },
+    { label: "Novos lançamentos", value: "new" },
+    { label: "Em alta", value: "trending" },
+  ];
+
+  const updateFilters = (patch: Partial<CatalogSearch>) => {
+    void navigate({ search: (previous) => ({ ...previous, ...patch }), resetScroll: false });
+  };
+
+  useEffect(() => {
+    if (data && data.page !== filters.page) {
+      void navigate({ search: (previous) => ({ ...previous, page: data.page }), replace: true, resetScroll: false });
+    }
+  }, [data, filters.page, navigate]);
 
   useEffect(() => {
     const handleSearch = (event: Event) => {
-      setSearch((event as CustomEvent<string>).detail ?? "");
-      setPage(1);
+      updateFilters({ q: (event as CustomEvent<string>).detail ?? "", page: 1 });
     };
     const handleFilterToggle = () => {
       previousFocusRef.current = document.activeElement as HTMLElement | null;
@@ -70,7 +79,7 @@ export function MarketplaceHome() {
       window.removeEventListener("kurio:catalog-filter-toggle", handleFilterToggle);
       window.removeEventListener("kurio:catalog-search-focus", handleSearchFocus);
     };
-  }, []);
+  });
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -106,54 +115,21 @@ export function MarketplaceHome() {
     };
   }, [mobileFiltersOpen]);
 
-  const visibleNfts = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
-    const filtered = catalogNfts.filter((nft) => {
-      const matchesSearch = `${nft.name} #${nft.tokenId}`
-        .toLocaleLowerCase("pt-BR")
-        .includes(normalizedSearch);
-      const matchesCategory = !category || nft.category === category;
-      const matchesNetwork = networks.length === 0 || networks.includes(nft.network);
-      const price = Number(nft.priceEth);
-      const matchesPrice = price >= appliedRange[0] && price <= appliedRange[1];
-
-      return matchesSearch && matchesCategory && matchesNetwork && matchesPrice;
-    });
-
-    const sorted = [...filtered];
-    if (activeTab === "Novos lançamentos") {
-      sorted.sort((a, b) => b.releaseOrder - a.releaseOrder);
-    } else if (activeTab === "Em alta") {
-      sorted.sort((a, b) => b.popularity - a.popularity);
-    }
-
-    if (sort === "price-asc") sorted.sort((a, b) => Number(a.priceEth) - Number(b.priceEth));
-    if (sort === "price-desc") sorted.sort((a, b) => Number(b.priceEth) - Number(a.priceEth));
-
-    return sorted;
-  }, [activeTab, appliedRange, category, networks, search, sort]);
-
-  const pageCount = Math.max(1, Math.ceil(visibleNfts.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const pageNfts = visibleNfts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageCount = data?.pageCount ?? 1;
+  const currentPage = data?.page ?? filters.page;
+  const pageNfts = data?.items ?? [];
 
   const chooseCategory = (nextCategory: string) => {
-    setCategory((current) => (current === nextCategory ? null : nextCategory));
-    setPage(1);
+    updateFilters({ category: filters.category === nextCategory ? "" : nextCategory, page: 1 });
   };
 
   const toggleNetwork = (network: string) => {
-    setNetworks((selected) =>
-      selected.includes(network)
-        ? selected.filter((item) => item !== network)
-        : [...selected, network],
-    );
-    setPage(1);
+    const next = networks.includes(network) ? networks.filter((item) => item !== network) : [...networks, network];
+    updateFilters({ network: next.join(","), page: 1 });
   };
 
-  const applyPriceRange = () => {
-    setAppliedRange([Math.min(minPrice, maxPrice), Math.max(minPrice, maxPrice)]);
-    setPage(1);
+  const applyPriceRange = (minPrice: number, maxPrice: number) => {
+    updateFilters({ minPrice: Math.min(minPrice, maxPrice), maxPrice: Math.max(minPrice, maxPrice), page: 1 });
   };
 
   return (
@@ -197,15 +173,13 @@ export function MarketplaceHome() {
       <section className="catalog-section" id="catalogo" aria-label="Explorar NFTs">
         <aside className="catalog-sidebar" aria-label="Filtros do catálogo">
           <FilterPanel
+            key={`desktop-${filters.minPrice}-${filters.maxPrice}`}
             appliedRange={appliedRange}
-            category={category}
-            maxPrice={maxPrice}
-            minPrice={minPrice}
+            category={filters.category || null}
+            facetCounts={data?.facets}
             networks={networks}
             onApplyPrice={applyPriceRange}
             onCategory={chooseCategory}
-            onMaxPrice={setMaxPrice}
-            onMinPrice={setMinPrice}
             onNetwork={toggleNetwork}
           />
           <FeaturedCollection />
@@ -214,25 +188,22 @@ export function MarketplaceHome() {
         <div className="catalog-content">
           <div className="catalog-toolbar">
             <div className="catalog-tabs" role="tablist" aria-label="Coleções em destaque">
-              {["Todos os NFTs", "Novos lançamentos", "Em alta"].map((tab) => (
+              {tabs.map((tab) => (
                 <button
-                  aria-selected={activeTab === tab}
-                  className={activeTab === tab ? "is-active" : ""}
-                  key={tab}
-                  onClick={() => {
-                    setActiveTab(tab);
-                    setPage(1);
-                  }}
+                  aria-selected={filters.tab === tab.value}
+                  className={filters.tab === tab.value ? "is-active" : ""}
+                  key={tab.value}
+                  onClick={() => updateFilters({ tab: tab.value, page: 1 })}
                   role="tab"
                   type="button"
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
             </div>
             <label className="catalog-sort">
               <span>Ordenar por:</span>
-              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+              <select value={filters.sort} onChange={(event) => updateFilters({ sort: event.target.value as CatalogSearch["sort"], page: 1 })}>
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
@@ -245,21 +216,38 @@ export function MarketplaceHome() {
             <input
               aria-label="Buscar NFTs"
               onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
+                updateFilters({ q: event.target.value, page: 1 });
               }}
               placeholder="Buscar NFTs..."
               ref={desktopSearchRef}
-              value={search}
+              value={filters.q}
             />
-            {search && (
-              <button aria-label="Limpar busca" onClick={() => setSearch("")} type="button">
+            {filters.q && (
+              <button aria-label="Limpar busca" onClick={() => updateFilters({ q: "", page: 1 })} type="button">
                 <X aria-hidden="true" size={16} />
               </button>
             )}
           </div>
 
-          {pageNfts.length > 0 ? (
+          {isError && data && (
+            <div className="catalog-update-error" role="status">
+              <span>Não foi possível atualizar o catálogo. Os NFTs exibidos são os últimos carregados.</span>
+              <button onClick={() => void refetch()} type="button">Tentar novamente</button>
+            </div>
+          )}
+
+          {!data && isPending ? (
+            <div className="nft-grid" aria-label="Carregando NFTs" aria-busy="true">
+              {Array.from({ length: 9 }, (_, index) => <CatalogSkeleton key={index} />)}
+            </div>
+          ) : !data && isError ? (
+            <div className="catalog-empty" role="alert">
+              <MagnifyingGlass aria-hidden="true" size={28} />
+              <h2>Não foi possível carregar os NFTs</h2>
+              <p>Verifique a conexão e tente novamente.</p>
+              <button onClick={() => void refetch()} type="button">Tentar novamente</button>
+            </div>
+          ) : pageNfts.length > 0 ? (
             <div className="nft-grid">
               {pageNfts.map((nft) => <NftCard key={nft.id} nft={nft} />)}
             </div>
@@ -270,13 +258,7 @@ export function MarketplaceHome() {
               <p>Altere a busca ou os filtros para ver outras peças.</p>
               <button
                 onClick={() => {
-                  setSearch("");
-                  setCategory(null);
-                  setNetworks([]);
-                  setMinPrice(0.02);
-                  setMaxPrice(12.3);
-                  setAppliedRange([0.02, 12.3]);
-                  setPage(1);
+                  updateFilters({ q: "", category: "", network: "", minPrice: 0.02, maxPrice: 12.3, page: 1 });
                 }}
                 type="button"
               >
@@ -285,12 +267,14 @@ export function MarketplaceHome() {
             </div>
           )}
 
-          {pageCount > 1 && (
+          {isFetching && !isPending && <p className="catalog-refresh" role="status">Atualizando catálogo…</p>}
+
+          {!isPending && !isError && pageCount > 1 && (
             <nav className="catalog-pagination" aria-label="Paginação do catálogo">
               <button
                 aria-label="Página anterior"
                 disabled={currentPage === 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                onClick={() => updateFilters({ page: Math.max(1, currentPage - 1) })}
                 type="button"
               >
                 <CaretLeft aria-hidden="true" size={16} />
@@ -300,7 +284,7 @@ export function MarketplaceHome() {
                   aria-current={currentPage === pageNumber ? "page" : undefined}
                   className={currentPage === pageNumber ? "is-active" : ""}
                   key={pageNumber}
-                  onClick={() => setPage(pageNumber)}
+                  onClick={() => updateFilters({ page: pageNumber })}
                   type="button"
                 >
                   {pageNumber}
@@ -309,7 +293,7 @@ export function MarketplaceHome() {
               <button
                 aria-label="Próxima página"
                 disabled={currentPage === pageCount}
-                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+                onClick={() => updateFilters({ page: Math.min(pageCount, currentPage + 1) })}
                 type="button"
               >
                 <CaretRight aria-hidden="true" size={16} />
@@ -333,22 +317,20 @@ export function MarketplaceHome() {
               </button>
             </div>
             <FilterPanel
+              key={`mobile-${filters.minPrice}-${filters.maxPrice}`}
               appliedRange={appliedRange}
-              category={category}
-              maxPrice={maxPrice}
-              minPrice={minPrice}
+              category={filters.category || null}
+              facetCounts={data?.facets}
               networks={networks}
-              onApplyPrice={() => {
-                applyPriceRange();
+              onApplyPrice={(min, max) => {
+                applyPriceRange(min, max);
                 setMobileFiltersOpen(false);
               }}
               onCategory={chooseCategory}
-              onMaxPrice={setMaxPrice}
-              onMinPrice={setMinPrice}
               onNetwork={toggleNetwork}
             />
             <button className="mobile-filter-drawer__done" onClick={() => setMobileFiltersOpen(false)} type="button">
-              Ver {visibleNfts.length} NFTs
+              Ver {data?.total ?? 0} NFTs
             </button>
           </section>
         </div>
@@ -360,42 +342,38 @@ export function MarketplaceHome() {
 interface FilterPanelProps {
   appliedRange: [number, number];
   category: string | null;
-  maxPrice: number;
-  minPrice: number;
+  facetCounts?: { categories: Record<string, number>; networks: Record<string, number> };
   networks: string[];
-  onApplyPrice: () => void;
+  onApplyPrice: (minPrice: number, maxPrice: number) => void;
   onCategory: (category: string) => void;
-  onMaxPrice: (value: number) => void;
-  onMinPrice: (value: number) => void;
   onNetwork: (network: string) => void;
 }
 
 function FilterPanel({
   appliedRange,
   category,
-  maxPrice,
-  minPrice,
+  facetCounts,
   networks,
   onApplyPrice,
   onCategory,
-  onMaxPrice,
-  onMinPrice,
   onNetwork,
 }: FilterPanelProps) {
+  const [minPrice, setMinPrice] = useState(appliedRange[0]);
+  const [maxPrice, setMaxPrice] = useState(appliedRange[1]);
   return (
     <div className="catalog-filters">
       <section className="catalog-filter-group">
         <h2>Coleções</h2>
         <ul className="catalog-category-list">
-          {catalogCategories.map((item) => (
-            <li key={item.label}>
+          {catalogCategories.map((categoryName) => (
+            <li key={categoryName}>
               <button
-                aria-pressed={category === item.label}
-                className={category === item.label ? "is-active" : ""}
-                onClick={() => onCategory(item.label)}
+                aria-pressed={category === categoryName}
+                className={category === categoryName ? "is-active" : ""}
+                onClick={() => onCategory(categoryName)}
                 type="button"
               >
-                <span>{item.label}</span><span>({item.count})</span>
+                <span>{categoryName}</span><span>({facetCounts?.categories[categoryName] ?? "…"})</span>
               </button>
             </li>
           ))}
@@ -407,29 +385,29 @@ function FilterPanel({
         <div className="price-filter__ranges">
           <label>
             <span className="sr-only">Preço mínimo em ETH</span>
-            <input aria-label="Preço mínimo em ETH" max="12.3" min="0.02" onChange={(event) => onMinPrice(Number(event.target.value))} step="0.01" type="range" value={minPrice} />
+            <input aria-label="Preço mínimo em ETH" max="12.3" min="0.02" onChange={(event) => setMinPrice(Number(event.target.value))} step="0.01" type="range" value={minPrice} />
           </label>
           <label>
             <span className="sr-only">Preço máximo em ETH</span>
-            <input aria-label="Preço máximo em ETH" max="12.3" min="0.02" onChange={(event) => onMaxPrice(Number(event.target.value))} step="0.01" type="range" value={maxPrice} />
+            <input aria-label="Preço máximo em ETH" max="12.3" min="0.02" onChange={(event) => setMaxPrice(Number(event.target.value))} step="0.01" type="range" value={maxPrice} />
           </label>
         </div>
         <p>Preço: {appliedRange[0].toFixed(2).replace(".", ",")} – {appliedRange[1].toFixed(2).replace(".", ",")} ETH</p>
-        <button className="filter-apply" onClick={onApplyPrice} type="button">Aplicar</button>
+        <button className="filter-apply" onClick={() => onApplyPrice(minPrice, maxPrice)} type="button">Aplicar</button>
       </section>
 
       <section className="catalog-filter-group network-filter">
         <h2>Rede</h2>
         <ul>
-          {networkCounts.map((network) => (
-            <li key={network.label}>
+          {networkLabels.map((network) => (
+            <li key={network}>
               <button
-                aria-pressed={networks.includes(network.label)}
-                className={networks.includes(network.label) ? "is-active" : ""}
-                onClick={() => onNetwork(network.label)}
+                aria-pressed={networks.includes(network)}
+                className={networks.includes(network) ? "is-active" : ""}
+                onClick={() => onNetwork(network)}
                 type="button"
               >
-                <span>{network.label}</span><span>({network.count})</span>
+                <span>{network}</span><span>({facetCounts?.networks[network] ?? "…"})</span>
               </button>
             </li>
           ))}
@@ -452,17 +430,29 @@ function FeaturedCollection() {
 function NftCard({ nft }: { nft: CatalogNft }) {
   return (
     <article className="nft-card">
-      <div className="nft-card__image-wrap">
-        <img className="nft-card__image" src={nft.image} alt={`${nft.name} #${nft.tokenId}`} loading="lazy" />
-        {nft.id === featuredNft.id && <span className="nft-card__favorite-mark" aria-hidden="true"><Heart size={16} weight="regular" /></span>}
-        {nft.isRare && <span className="nft-card__badge">RARO</span>}
-      </div>
-      <h2>{nft.name} <span>#{nft.tokenId}</span></h2>
+      <Link aria-label={`Ver detalhes de ${nft.name} #${nft.tokenId}`} className="nft-card__link" params={{ nftId: nft.id }} to="/nft/$nftId">
+        <div className="nft-card__image-wrap">
+          <img className="nft-card__image" src={nft.image} alt={`${nft.name} #${nft.tokenId}`} loading="lazy" />
+          {nft.id === featuredNft.id && <span className="nft-card__favorite-mark" aria-hidden="true"><Heart size={16} weight="regular" /></span>}
+          {nft.isRare && <span className="nft-card__badge">RARO</span>}
+        </div>
+        <h2>{nft.name} <span>#{nft.tokenId}</span></h2>
+      </Link>
       <p className="nft-card__price">
         <strong>{nft.priceEth} ETH</strong>
         {nft.previousPriceEth && <del>{nft.previousPriceEth} ETH</del>}
       </p>
     </article>
+  );
+}
+
+function CatalogSkeleton() {
+  return (
+    <div className="nft-card nft-card--skeleton" aria-hidden="true">
+      <div className="nft-card__image-wrap shimmer" />
+      <span className="skeleton-line shimmer" />
+      <span className="skeleton-line skeleton-line--short shimmer" />
+    </div>
   );
 }
 
