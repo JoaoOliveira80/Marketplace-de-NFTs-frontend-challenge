@@ -2655,17 +2655,73 @@ button:focus-visible {
 .nft-detail--error a { color: var(--primary); }
 .nft-detail--error h1 { margin-top: 40px; }
 .nft-detail--error button { padding: 10px 16px; border: 1px solid var(--primary); background: transparent; color: var(--primary); cursor: pointer; }
-.auth-backdrop { position: fixed; z-index: 40; inset: 0; display: grid; place-items: center; padding: 20px; background: #080504ba; }
-.auth-dialog { position: relative; width: min(100%, 430px); padding: 40px; border-bottom: 6px solid var(--primary); border-radius: 8px; background: var(--card); }
-.auth-dialog__close { position: absolute; top: 15px; right: 15px; border: 0; background: transparent; color: var(--primary); cursor: pointer; }
-.auth-dialog h2 { margin: 0 0 16px; text-align: center; font-size: 22px; }
-.auth-dialog > p { color: var(--muted-foreground); font-size: 13px; text-align: center; }
-.auth-dialog form { display: grid; gap: 12px; margin-top: 24px; }
-.auth-dialog label { display: grid; gap: 6px; font-size: 13px; }
-.auth-dialog input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--foreground); font: inherit; }
-.auth-dialog form > button { height: 44px; margin-top: 8px; border: 0; border-radius: 4px; background: var(--primary); color: var(--background); font: inherit; font-weight: 700; cursor: pointer; }
-.auth-dialog__error { margin: 0; color: #f0a38e; font-size: 12px; }
-.auth-dialog .auth-dialog__demo { margin: 22px 0 0; font-size: 11px; }
+.app-shell__account-error { max-width: 1200px; margin: 8px auto; color: #f0a38e; font-size: 13px; }
+.auth-page { position: relative; display: grid; min-height: 1650px; place-items: start center; padding: 72px 24px 80px; }
+.auth-page__preview { position: absolute; inset: 0; width: min(100% - 48px, 1200px); margin: auto; overflow: hidden; pointer-events: none; }
+.auth-page__hero { display: flex; height: 400px; align-items: center; justify-content: space-between; padding: 0 40px; }
+.auth-page__hero > div { max-width: 410px; }
+.auth-page__hero span { font-size: 13px; }
+.auth-page__hero h2 { margin: 22px 0 14px; font-size: 31px; line-height: 1.35; }
+.auth-page__hero p { color: var(--muted-foreground); font-size: 13px; line-height: 1.7; }
+.auth-page__explore { display: inline-block; margin-top: 30px; padding: 12px 26px; border-radius: 4px; background: var(--primary); color: var(--background); font-weight: 700; }
+.auth-page__hero img { width: 37%; aspect-ratio: 1; border-radius: 18px; object-fit: cover; }
+.auth-page__catalog { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 45px; padding-top: 65px; }
+.auth-page__filters { display: flex; flex-direction: column; gap: 14px; padding: 20px; background: var(--card); color: var(--muted-foreground); font-size: 13px; }
+.auth-page__filters > strong { margin: 7px 0 3px; color: var(--foreground); font-size: 16px; }
+.auth-page__filters > span { display: flex; justify-content: space-between; }
+.auth-page__filters b { font-weight: 400; }
+.auth-page__filters small { font-size: 11px; }
+.auth-page__filters .auth-page__apply { width: fit-content; padding: 7px 12px; border-radius: 3px; background: var(--primary); color: var(--background); }
+.auth-page__price-track { height: 3px; margin-top: 8px; background: var(--primary); }
+.auth-page__catalog-main { min-width: 0; }
+.auth-page__catalog-toolbar { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 24px; padding: 4px 0 13px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
+.auth-page__catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 46px 24px; }
+.auth-page__catalog-card { display: flex; min-width: 0; flex-direction: column; font-size: 12px; }
+.auth-page__catalog-card > div { padding: 8px; background: var(--card); }
+.auth-page__catalog-card img { display: block; width: 100%; aspect-ratio: 1; border-radius: 12px; object-fit: cover; }
+.auth-page__catalog-card > span { margin-top: 7px; }
+.auth-page__catalog-card strong { color: var(--primary); }
+.auth-page__panel { position: relative; z-index: 1; width: min(100%, 465px); min-height: 550px; padding: 42px 74px 52px; border-bottom: 8px solid var(--primary); border-radius: 7px; background: #241612; box-shadow: 0 16px 80px #0905037a; }
+.auth-page__close { position: absolute; top: 10px; right: 15px; color: var(--primary); font-size: 25px; line-height: 1; text-decoration: none; }
+.auth-page__brand { display: none; }
+.auth-page__mode-links { display: flex; justify-content: center; gap: 7px; margin: 0 0 34px; color: var(--primary); font-size: 18px; font-weight: 700; white-space: nowrap; }
+.auth-page__mode-links a { color: var(--foreground); text-decoration: none; }
+.auth-page__mode-links a[aria-current="page"] { color: var(--primary); }
+.auth-page h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.auth-page__description { min-height: 38px; margin: 0 0 18px; color: var(--foreground); font-size: 11px; line-height: 1.4; text-align: center; }
+.auth-page__panel form { display: grid; gap: 11px; }
+.auth-field { min-width: 0; }
+.auth-field label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.auth-field__control { position: relative; }
+.auth-field input { width: 100%; height: 38px; padding: 0 35px 0 13px; border: 1px solid #462819; border-radius: 4px; outline: 0; background: transparent; color: var(--foreground); font: inherit; font-size: 12px; }
+.auth-field input::placeholder { color: #98774d; }
+.auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px #d28a4c30; }
+.auth-field input[aria-invalid="true"] { border-color: #e9a58e; }
+.auth-field__control button { position: absolute; top: 0; right: 5px; display: grid; width: 31px; height: 38px; place-items: center; border: 0; background: transparent; color: #a77c52; cursor: pointer; }
+.auth-field__error,.auth-page__form-error,.auth-page__expired { color: #f0a38e; font-size: 11px; line-height: 1.4; }
+.auth-field__error { display: block; margin-top: 4px; }
+.auth-page__form-error,.auth-page__expired { margin: 0 0 10px; }
+.auth-page__forgot { color: var(--primary); font-size: 11px; text-align: right; }
+.auth-page__submit { width: 100%; height: 43px; margin-top: 10px; border: 0; border-radius: 4px; background: var(--primary); color: var(--background); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.auth-page__submit:disabled { opacity: .65; cursor: wait; }
+.auth-page__social { display: grid; gap: 10px; margin-top: 22px; text-align: center; }
+.auth-page__social span { color: var(--muted-foreground); font-size: 11px; }
+.auth-page__social button { display: flex; min-height: 37px; align-items: center; justify-content: center; gap: 9px; border: 1px solid #462819; border-radius: 4px; background: transparent; color: #a58969; font: inherit; font-size: 11px; cursor: not-allowed; }
+.auth-page__social button:first-of-type svg { color: #e3a35a; }
+.auth-page__social button:last-of-type svg { color: #5378b8; }
+.auth-page__switch { display: none; margin: 24px 0 0; color: var(--muted-foreground); font-size: 11px; text-align: center; }
+.auth-page__switch a { color: var(--primary); text-decoration: none; }
+.auth-page__demo { display: none; margin: 18px 0 0; color: #ab8f6a; font-size: 10px; line-height: 1.5; text-align: center; }
+.favorites-page { width: min(100% - 48px, 1200px); min-height: 55vh; margin: 0 auto; padding: 50px 0 100px; }
+.favorites-page__heading { display: flex; align-items: center; gap: 12px; color: var(--primary); }
+.favorites-page__heading h1 { color: var(--foreground); font-size: 24px; }
+.favorites-page__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 30px; }
+.favorites-page__grid a { display: grid; gap: 8px; color: var(--foreground); text-decoration: none; }
+.favorites-page__grid img { width: 100%; aspect-ratio: 1; padding: 8px; background: var(--card); object-fit: cover; }
+.favorites-page__grid strong { color: var(--primary); }
+.favorites-page__empty { margin-top: 40px; color: var(--muted-foreground); }
+.favorites-page__empty a,.favorites-page button { display: inline-block; margin-top: 12px; padding: 10px 15px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font: inherit; text-decoration: none; cursor: pointer; }
+.favorites-page__skeleton { width: 220px; height: 260px; margin-top: 30px; background: var(--card); }
 
 @media (max-width: 900px) and (min-width: 821px) {
   .nft-detail__gallery { grid-template-columns: 65px minmax(0, 1fr); gap: 10px; }
@@ -2676,6 +2732,25 @@ button:focus-visible {
 }
 
 @media (max-width: 820px) {
+  .app-shell--auth .site-header,.app-shell--auth .site-footer,.app-shell--auth .mobile-bottom-nav { display: none; }
+  .app-shell--auth { min-height: 100dvh; }
+  .auth-page { min-height: 100dvh; padding: 0; }
+  .auth-page__preview,.auth-page__close,.auth-page__mode-links { display: none; }
+  .auth-page__panel { display: flex; width: min(100%, 480px); min-height: 100dvh; flex-direction: column; justify-content: center; padding: 55px 25px 36px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .auth-page__brand { display: block; margin: 0 0 60px; color: var(--foreground); font-size: 23px; font-weight: 700; letter-spacing: 1px; text-align: center; text-decoration: none; }
+  .auth-page h1 { position: static; width: auto; height: auto; margin: 0 0 27px; overflow: visible; clip: auto; font-size: 15px; text-align: center; white-space: normal; }
+  .auth-page__description { margin-bottom: 28px; }
+  .auth-page__panel form { gap: 12px; }
+  .auth-field label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .auth-field input { height: 42px; font-size: 12px; }
+  .auth-field__control button { height: 42px; }
+  .auth-page__submit { height: 50px; margin-top: 19px; }
+  .auth-page__social { margin-top: 34px; }
+  .auth-page__social button { min-height: 37px; }
+  .auth-page__switch { display: block; margin-top: 28px; }
+  .auth-page__demo { display: block; margin-top: 15px; }
+  .favorites-page { width: min(100% - 32px, 560px); padding-top: 32px; }
+  .favorites-page__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
   .app-shell--detail .site-header,.app-shell--detail .site-footer,.app-shell--detail .mobile-bottom-nav { display: none; }
   .app-shell--detail { background: radial-gradient(ellipse at 50% 0%, #37221b 0, #140d0a 52%); }
   .nft-detail { width: 100%; min-height: 100dvh; padding: 0 0 165px; }

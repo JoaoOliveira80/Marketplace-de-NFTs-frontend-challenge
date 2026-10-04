@@ -1,9 +1,12 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import type { CatalogNft } from "@/features/catalog/catalog-data";
+
+export interface FavoritesResponse { ids: string[]; items: CatalogNft[] }
 
 export const favoritesQueryOptions = (userId: string) => queryOptions({
   queryKey: ["favorites", userId],
-  queryFn: async (): Promise<string[]> => (await api.get<{ ids: string[] }>("/favorites")).data.ids,
+  queryFn: async (): Promise<FavoritesResponse> => (await api.get<FavoritesResponse>("/favorites")).data,
   retry: false,
 });
 
@@ -17,10 +20,11 @@ export function useToggleFavorite(userId: string) {
     },
     onMutate: async ({ nftId, favorite }) => {
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<string[]>(queryKey);
-      queryClient.setQueryData<string[]>(queryKey, (current = []) =>
-        favorite ? [...new Set([...current, nftId])] : current.filter((id) => id !== nftId),
-      );
+      const previous = queryClient.getQueryData<FavoritesResponse>(queryKey);
+      queryClient.setQueryData<FavoritesResponse>(queryKey, (current = { ids: [], items: [] }) => ({
+        ids: favorite ? [...new Set([...current.ids, nftId])] : current.ids.filter((id) => id !== nftId),
+        items: favorite ? current.items : current.items.filter((item) => item.id !== nftId),
+      }));
       return { previous };
     },
     onError: (_error, _variables, context) => {

@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 
 export interface SessionUser {
@@ -7,33 +7,51 @@ export interface SessionUser {
   email: string;
 }
 
-interface SessionResponse { user: SessionUser | null }
+export interface SessionResponse { user: SessionUser | null }
+export interface AuthResponse { token: string; user: SessionUser }
+export interface RegisterInput { name: string; email: string; password: string; confirmPassword: string }
+export interface ApiFormError { message: string; code: string; fields?: Record<string, string> }
 
 export const sessionQueryOptions = queryOptions({
   queryKey: ["session"],
-  queryFn: async (): Promise<SessionResponse> => (await api.get<SessionResponse>("/session")).data,
-  staleTime: 30_000,
+  queryFn: async ({ signal }): Promise<SessionResponse> => (await api.get<SessionResponse>("/session", { signal })).data,
+  staleTime: 15_000,
   retry: false,
 });
+
+function establishSession(queryClient: QueryClient, response: AuthResponse) {
+  window.localStorage.setItem("kurio-session-token", response.token);
+  queryClient.clear();
+  queryClient.setQueryData(["session"], { user: response.user });
+}
 
 export function useSignIn() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) =>
-      (await api.post<{ token: string; user: SessionUser }>("/session", credentials)).data,
-    onSuccess: ({ token, user }) => {
-      window.localStorage.setItem("kurio-session-token", token);
-      queryClient.setQueryData(["session"], { user });
-      void queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
+    mutationFn: async (credentials: { email: string; password: string }): Promise<AuthResponse> =>
+      (await api.post<AuthResponse>("/session", credentials)).data,
+    onSuccess: (response) => establishSession(queryClient, response),
+  });
+}
+
+export function useRegister() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: RegisterInput): Promise<AuthResponse> =>
+      (await api.post<AuthResponse>("/accounts", input)).data,
+    onSuccess: (response) => establishSession(queryClient, response),
   });
 }
 
 export function useSignOut() {
   const queryClient = useQueryClient();
-  return () => {
-    window.localStorage.removeItem("kurio-session-token");
-    queryClient.removeQueries({ queryKey: ["favorites"] });
-    queryClient.setQueryData(["session"], { user: null });
-  };
+  return useMutation({
+    mutationFn: async () => { await api.post("/session/logout"); },
+    onSuccess: () => {
+      window.localStorage.removeItem("kurio-session-token");
+      queryClient.clear();
+      queryClient.setQueryData(["session"], { user: null });
+      window.dispatchEvent(new Event("kurio:session-cleared"));
+    },
+  });
 }

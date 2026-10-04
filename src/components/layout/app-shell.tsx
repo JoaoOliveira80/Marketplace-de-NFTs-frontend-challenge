@@ -13,11 +13,10 @@ import {
   UserCircle,
   YoutubeLogo,
 } from "@phosphor-icons/react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { AuthDialog } from "@/features/auth/auth-dialog";
 import { sessionQueryOptions, useSignOut } from "@/features/auth/auth-api";
 
 const primarySections = ["Mercado", "Criadores", "Aprenda"];
@@ -27,19 +26,33 @@ export function AppShell({ children }: { children: ReactNode }) {
   const searchStr = useRouterState({ select: (state) => state.location.searchStr });
   const isHome = pathname === "/";
   const isDetail = pathname.startsWith("/nft/");
-  const [authOpen, setAuthOpen] = useState(false);
-  const closeAuth = useCallback(() => setAuthOpen(false), []);
+  const isAuth = pathname === "/login" || pathname === "/register";
+  const isFavorites = pathname === "/favorites";
+  const navigate = useNavigate();
+  const [signOutError, setSignOutError] = useState("");
   const session = useQuery(sessionQueryOptions);
   const signOut = useSignOut();
   useEffect(() => {
-    const open = () => setAuthOpen(true);
-    window.addEventListener("kurio:auth-open", open);
-    return () => window.removeEventListener("kurio:auth-open", open);
-  }, []);
+    if (isAuth) return;
+    const expired = () => {
+      const returnTo = window.location.pathname + window.location.search;
+      void navigate({ to: "/login", search: { returnTo, expired: true } });
+    };
+    window.addEventListener("kurio:session-expired", expired);
+    return () => window.removeEventListener("kurio:session-expired", expired);
+  }, [isAuth, navigate]);
+  const goToLogin = () => void navigate({ to: "/login", search: { returnTo: window.location.pathname + window.location.search, expired: false } });
+  const leaveAccount = () => {
+    setSignOutError("");
+    signOut.mutate(undefined, {
+      onSuccess: () => { if (isFavorites) void navigate({ to: "/" }); },
+      onError: () => setSignOutError("Não foi possível sair. Tente novamente."),
+    });
+  };
   const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
-    <div className={isDetail ? "app-shell app-shell--detail" : "app-shell"}>
+    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}`}>
       <header className="site-header">
         <div className="site-header__inner">
           <Link className="brand" to="/" aria-label="Kurio — início">
@@ -47,10 +60,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="desktop-nav" aria-label="Navegação principal">
-            <Link className="desktop-nav__link" to="/" aria-current={isHome ? "page" : undefined}>
+            <Link className="desktop-nav__link" to="/" activeOptions={{ exact: true }} aria-current={isHome ? "page" : undefined}>
               Início
             </Link>
-            {primarySections.map((section) => section === "Mercado" ? <Link className="desktop-nav__link" to="/" key={section} aria-current={isDetail ? "page" : undefined}>Mercado</Link> : <span className="desktop-nav__link" key={section}>{section}</span>)}
+            {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
           </nav>
 
           <div className="desktop-actions" aria-label="Ações da conta">
@@ -61,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <ShoppingCart aria-hidden="true" size={23} weight="regular" />
               <span className="cart-count" aria-hidden="true">6</span>
             </button>
-            <button className="sign-in-button" type="button" onClick={session.data?.user ? signOut : () => setAuthOpen(true)}>
+            <button className="sign-in-button" type="button" onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
               <SignIn aria-hidden="true" size={18} weight="regular" />
               {session.data?.user ? "Sair" : "Entrar"}
             </button>
@@ -84,6 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      {signOutError && <p className="app-shell__account-error" role="alert">{signOutError}</p>}
 
       <main className="site-main">{children}</main>
 
@@ -167,23 +181,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       </footer>
 
       <nav className="mobile-bottom-nav" aria-label="Navegação mobile">
-        <Link className="mobile-bottom-nav__item is-active" to="/" aria-label="Início" aria-current={isHome ? "page" : undefined}>
+        <Link className={`mobile-bottom-nav__item${isHome ? " is-active" : ""}`} to="/" activeOptions={{ exact: true }} aria-label="Início" aria-current={isHome ? "page" : undefined}>
           <House aria-hidden="true" size={22} weight="fill" />
         </Link>
-        <button className="mobile-bottom-nav__item" type="button" disabled aria-label="Favoritos">
+        <Link className={`mobile-bottom-nav__item${isFavorites ? " is-active" : ""}`} to="/favorites" aria-label="Favoritos" aria-current={isFavorites ? "page" : undefined}>
           <Heart aria-hidden="true" size={22} weight="regular" />
-        </button>
+        </Link>
         <button className="mobile-bottom-nav__item mobile-bottom-nav__scanner" type="button" disabled aria-label="Ler código">
           <Scan aria-hidden="true" size={30} weight="regular" />
         </button>
         <button className="mobile-bottom-nav__item" type="button" disabled aria-label="Carrinho">
           <ShoppingCart aria-hidden="true" size={22} weight="regular" />
         </button>
-        <button className="mobile-bottom-nav__item" type="button" aria-label={session.data?.user ? "Sair da conta" : "Entrar na conta"} onClick={session.data?.user ? signOut : () => setAuthOpen(true)}>
+        <button className="mobile-bottom-nav__item" type="button" aria-label={session.data?.user ? "Sair da conta" : "Entrar na conta"} onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
           <UserCircle aria-hidden="true" size={22} weight="regular" />
         </button>
       </nav>
-      <AuthDialog open={authOpen} onClose={closeAuth} />
     </div>
   );
 }

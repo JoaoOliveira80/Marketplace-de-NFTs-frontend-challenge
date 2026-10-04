@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { CaretLeft, Heart, MagnifyingGlass, Minus, Plus, ShoppingCart, Star, X } from "@phosphor-icons/react";
@@ -23,6 +24,7 @@ function QuantityControl({ quantity, available, onChange }: { quantity: number; 
 }
 
 function DetailContent({ nft }: { nft: NftDetail }) {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedEdition, setSelectedEdition] = useState(nft.editions.find((edition) => edition.label === nft.edition)?.id ?? nft.editions[0].id);
   const [quantity, setQuantity] = useState(1);
@@ -38,7 +40,7 @@ function DetailContent({ nft }: { nft: NftDetail }) {
   const userId = session.data?.user?.id ?? "guest";
   const favorites = useQuery({ ...favoritesQueryOptions(userId), enabled: Boolean(session.data?.user) });
   const toggleFavorite = useToggleFavorite(userId);
-  const isFavorite = favorites.data?.includes(nft.id) ?? false;
+  const isFavorite = favorites.data?.ids.includes(nft.id) ?? false;
 
   useEffect(() => {
     if (!zoomOpen) return;
@@ -66,7 +68,7 @@ function DetailContent({ nft }: { nft: NftDetail }) {
 
   const onFavorite = () => {
     if (!session.data?.user) {
-      window.dispatchEvent(new Event("kurio:auth-open"));
+      void navigate({ to: "/login", search: { returnTo: window.location.pathname + window.location.search, expired: false } });
       return;
     }
     setFavoriteError(false);
