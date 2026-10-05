@@ -690,6 +690,51 @@ input:focus-visible {
   }
 }
 
+.checkout-review__retry { width: 100%; min-height: 44px; margin-top: 14px; border: 1px solid var(--primary); border-radius: 4px; background: transparent; color: var(--primary); font: inherit; cursor: pointer; }
+.app-shell--order .site-header,.app-shell--order .site-footer,.app-shell--order .mobile-bottom-nav { display: none; }
+.app-shell--order { min-height: 100svh; }
+.order-page { display: grid; min-height: 100svh; place-items: start center; padding: clamp(48px, 10vh, 170px) 24px 80px; }
+.order-receipt,.order-state { width: min(100%, 590px); background: #241612; color: var(--foreground); }
+.order-receipt { border-bottom: 8px solid var(--primary); }
+.order-receipt__icon { display: grid; place-items: center; padding: 25px 0 5px; color: var(--primary); }
+.order-receipt h1 { margin: 0; padding: 0 24px 20px; color: var(--muted-foreground); font-size: 17px; text-align: center; }
+.order-receipt__facts { display: grid; grid-template-columns: 1.25fr 1fr 1fr .8fr; padding: 16px 24px; border-block: 1px solid var(--primary); color: var(--muted-foreground); font-size: 13px; }
+.order-receipt__facts div { display: grid; gap: 4px; padding: 0 14px; border-right: 1px solid #8a5635; }
+.order-receipt__facts div:first-child { padding-left: 0; }
+.order-receipt__facts div:last-child { padding-right: 0; border-right: 0; }
+.order-receipt__facts strong { color: var(--foreground); }
+.order-receipt__body { padding: 22px 44px 48px; }
+.order-receipt__body h2 { margin: 0 0 10px; font-size: 16px; }
+.order-receipt__head { display: grid; grid-template-columns: 1fr 75px 120px; border-bottom: 1px solid #6a412b; padding-bottom: 8px; font-weight: 700; }
+.order-receipt__head span:not(:first-child) { text-align: right; }
+.order-receipt__item { display: grid; grid-template-columns: 72px minmax(0, 1fr) 58px 120px; align-items: center; gap: 10px; margin-top: 14px; font-size: 14px; }
+.order-receipt__item img { width: 72px; height: 72px; border-radius: 7px; object-fit: cover; }
+.order-receipt__item div { display: grid; gap: 3px; min-width: 0; }
+.order-receipt__item small,.order-receipt__item > span { color: var(--muted-foreground); }
+.order-receipt__item > span,.order-receipt__item > b { text-align: right; }
+.order-receipt__item > b,.order-receipt__totals b { color: var(--primary); }
+.order-receipt__totals { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; width: 67%; margin: 20px 0 16px auto; border-bottom: 1px solid #6a412b; padding-bottom: 12px; font-size: 14px; }
+.order-receipt__totals > :nth-child(even) { text-align: right; }
+.order-receipt__body p { color: var(--muted-foreground); font-size: 13px; line-height: 1.6; text-align: center; }
+.order-receipt__reference { overflow-wrap: anywhere; }
+.order-receipt__body > a,.order-state a,.order-state button { display: table; margin: 18px auto 0; padding: 12px 19px; border: 0; border-radius: 4px; background: var(--primary); color: var(--primary-foreground); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.order-state { display: grid; justify-items: center; gap: 12px; padding: 50px 36px; text-align: center; }
+.order-state svg { color: var(--primary); }
+.order-state h1 { margin: 0; font-size: 22px; }
+.order-state p { max-width: 440px; margin: 0; color: var(--muted-foreground); line-height: 1.6; }
+.order-state small { overflow-wrap: anywhere; color: var(--muted-foreground); }
+@media (max-width: 620px) {
+  .order-page { padding: 0; }
+  .order-receipt,.order-state { min-height: 100svh; border-radius: 30px; }
+  .order-receipt__facts { grid-template-columns: repeat(2, 1fr); gap: 16px 0; }
+  .order-receipt__facts div:nth-child(2) { border-right: 0; }
+  .order-receipt__body { padding: 22px 20px 48px; }
+  .order-receipt__head { grid-template-columns: 1fr 48px 90px; font-size: 12px; }
+  .order-receipt__item { grid-template-columns: 54px minmax(0, 1fr) 40px 90px; gap: 7px; font-size: 11px; }
+  .order-receipt__item img { width: 54px; height: 54px; }
+  .order-receipt__totals { width: 100%; }
+}
+
 @media (max-width: 420px) {
   .site-header__inner,
   .site-footer__inner {

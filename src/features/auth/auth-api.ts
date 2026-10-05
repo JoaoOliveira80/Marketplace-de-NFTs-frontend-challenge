@@ -54,6 +54,7 @@ export function useSignOut() {
       if (userId) {
         window.sessionStorage.removeItem(`kurio-checkout-draft-${userId}`);
         window.sessionStorage.removeItem(`kurio-checkout-wallet-${userId}`);
+        window.sessionStorage.removeItem(`kurio-order-intent-${userId}`);
       }
       window.localStorage.removeItem("kurio-session-token");
       queryClient.clear();

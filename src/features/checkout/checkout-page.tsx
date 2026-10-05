@@ -1,5 +1,5 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { CaretLeft, CheckCircle, Plugs, WarningCircle } from "@phosphor-icons/react";
@@ -7,6 +7,7 @@ import { sessionQueryOptions } from "@/features/auth/auth-api";
 import { cartQueryOptions, quoteQueryOptions } from "@/features/cart/cart-api";
 import type { CartQuote } from "@/features/cart/cart-types";
 import { readCheckoutDraft, revalidateQuote, saveCheckoutDraft, useWalletConnection, walletsQueryOptions, type CheckoutProfile, type SavedWallet, type WalletNetwork, type WalletProvider } from "./checkout-api";
+import { clearOrderIntent, createOrder, readOrderIntent, recoverOrder, saveOrderIntent, type OrderIntent } from "@/features/orders/order-api";
 
 const providers: WalletProvider[] = ["WalletConnect", "MetaMask", "Coinbase Wallet"];
 const networks: WalletNetwork[] = ["Ethereum", "Polygon", "Solana"];
@@ -34,11 +35,14 @@ function QuoteTotals({ quote }: { quote: CartQuote }) {
 
 function CheckoutContent({ user }: { user: { id: string; name: string; email: string } }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const sendingRef = useRef(false);
   const scope = `user-${user.id}`;
   const cart = useQuery(cartQueryOptions(scope));
   const quote = useQuery({ ...quoteQueryOptions(scope), enabled: cart.isSuccess });
   const wallets = useQuery(walletsQueryOptions(user.id));
   const walletActions = useWalletConnection(user.id);
+  const orderSubmission = useMutation({ mutationFn: createOrder });
   const [profile, setProfile] = useState<CheckoutProfile>(() => initialProfile(user));
   const [selectedWalletId, setSelectedWalletId] = useState(() => window.sessionStorage.getItem(`kurio-checkout-wallet-${user.id}`) ?? "");
   const [providerChoice, setProviderChoice] = useState<WalletProvider | "">(() => readCheckoutDraft(user.id).walletType ?? "");
@@ -48,6 +52,9 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
   const [quoteError, setQuoteError] = useState("");
   const [reviewedRevision, setReviewedRevision] = useState<string | null>(null);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [pendingIntent, setPendingIntent] = useState<OrderIntent | null>(() => readOrderIntent(user.id));
+  const [orderError, setOrderError] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const selectedWallet = wallets.data?.wallets.find((wallet) => wallet.id === selectedWalletId) ?? wallets.data?.wallets[0];
   const connected = Boolean(selectedWallet && wallets.data?.connectedWalletId === selectedWallet.id &&
     (providerChoice || profile.walletType || selectedWallet.provider) === (wallets.data?.connectedProvider ?? selectedWallet.provider) &&
@@ -58,6 +65,15 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
 
   useEffect(() => { saveCheckoutDraft(user.id, profile); }, [profile, user.id]);
   useEffect(() => { window.sessionStorage.setItem(`kurio-checkout-wallet-${user.id}`, selectedWalletId); }, [selectedWalletId, user.id]);
+  useEffect(() => {
+    const intent = readOrderIntent(user.id);
+    if (!intent) return;
+    let active = true;
+    void recoverOrder(intent.key).then((order) => {
+      if (active) { void navigate({ to: "/orders/$orderId", params: { orderId: order.id } }); }
+    }).catch(() => { if (active) setOrderError("O envio anterior foi interrompido. Você pode recuperar ou reenviar a mesma tentativa."); });
+    return () => { active = false; };
+  }, [navigate, user.id]);
 
   const patchProfile = (patch: Partial<CheckoutProfile>) => {
     setProfile((current) => ({ ...current, ...patch }));
@@ -163,6 +179,45 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
     if (!validate() || !quote.data || !reviewedRevision || stale) return;
     if (await checkQuote(reviewedRevision)) setReviewConfirmed(true);
   };
+  const submitOrder = async () => {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setOrderError("");
+    try {
+      let intent = pendingIntent;
+      if (!intent) {
+        if (!reviewConfirmed || !reviewedRevision || !quote.data || stale || !validate() || !selectedWallet) return;
+        if (!await checkQuote(reviewedRevision)) return;
+        intent = {
+          key: crypto.randomUUID(),
+          input: { quoteRevision: reviewedRevision, walletId: selectedWallet.id,
+            provider: providerChoice || profile.walletType || selectedWallet.provider,
+            network: profile.network || selectedWallet.network, profile },
+        };
+        saveOrderIntent(user.id, intent);
+        setPendingIntent(intent);
+      }
+      let order;
+      try { order = await orderSubmission.mutateAsync(intent); }
+      catch (error) {
+        if (isAxiosError(error) && error.response?.status === 504) order = await recoverOrder(intent.key);
+        else throw error;
+      }
+      void queryClient.invalidateQueries({ queryKey: ["cart"] });
+      void queryClient.invalidateQueries({ queryKey: ["cart-quote"] });
+      await navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.code === "QUOTE_CHANGED") {
+        clearOrderIntent(user.id);
+        setPendingIntent(null);
+        setReviewedRevision(null);
+        setReviewConfirmed(false);
+        void queryClient.invalidateQueries({ queryKey: ["cart-quote", scope] });
+      }
+      setOrderError(errorText(error, "Não foi possível enviar o pedido. Tente novamente com a mesma tentativa."));
+    } finally { sendingRef.current = false; setIsSending(false); }
+  };
 
   return <div className="checkout-page">
     <nav className="checkout-page__breadcrumb" aria-label="Caminho"><Link to="/">Início</Link><span>/</span><Link to="/">Mercado</Link><span>/</span><span>Pagamento</span></nav>
@@ -207,8 +262,10 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
         {quote.data && <div className="checkout-summary__mobile-total"><strong>Total:</strong><b>{quote.data.totalEth} ETH</b></div>}
         {quoteError && <p className="checkout-message checkout-message--error" id="checkout-quote-message" role="alert"><WarningCircle size={17} /> {quoteError}</p>}
         {stale && <p className="checkout-message checkout-message--error" role="alert">A cotação mudou durante a revisão. Confira os valores e revise novamente.</p>}
-        <button className="checkout-summary__primary" type="submit" form="checkout-form" disabled={!ready || revalidation.isPending}>{revalidation.isPending ? "Revalidando cotação..." : reviewedRevision && !stale ? "Revisar novamente" : "Confirmar compra"}</button>
-        {reviewedRevision && !stale && quote.data && <section className="checkout-review" aria-labelledby="checkout-review-title"><h2 id="checkout-review-title">Revisão da compra</h2><p>{quote.data.items.reduce((sum, item) => sum + item.quantity, 0)} NFT(s) · {quote.data.totalEth} ETH</p><p>Carteira: {selectedWallet?.name} · Rede {profile.network || selectedWallet?.network}</p><p>Colecionador: {profile.displayName}</p>{profile.useOtherWallet && <p>Receber em: {profile.secondaryAddress}</p>}{reviewConfirmed ? <p className="checkout-message" role="status"><CheckCircle size={18} /> Revisão concluída. O envio do pedido estará disponível na próxima etapa.</p> : <button type="button" onClick={() => void confirmReview()} disabled={revalidation.isPending}>Confirmar revisão</button>}</section>}
+        {orderError && <p className="checkout-message checkout-message--error" role="alert">{orderError}</p>}
+        <button className="checkout-summary__primary" type="submit" form="checkout-form" disabled={!ready || revalidation.isPending || Boolean(pendingIntent)}>{revalidation.isPending ? "Revalidando cotação..." : pendingIntent ? "Pedido em andamento" : reviewedRevision && !stale ? "Revisar novamente" : "Confirmar compra"}</button>
+        {reviewedRevision && !stale && quote.data && <section className="checkout-review" aria-labelledby="checkout-review-title"><h2 id="checkout-review-title">Revisão da compra</h2><p>{quote.data.items.reduce((sum, item) => sum + item.quantity, 0)} NFT(s) · {quote.data.totalEth} ETH</p><p>Carteira: {selectedWallet?.name} · Rede {profile.network || selectedWallet?.network}</p><p>Colecionador: {profile.displayName}</p>{profile.useOtherWallet && <p>Receber em: {profile.secondaryAddress}</p>}{reviewConfirmed ? <button type="button" onClick={() => void submitOrder()} disabled={isSending || revalidation.isPending}>{isSending ? "Enviando pedido..." : "Enviar pedido"}</button> : <button type="button" onClick={() => void confirmReview()} disabled={revalidation.isPending}>Confirmar revisão</button>}</section>}
+        {pendingIntent && <button className="checkout-review__retry" type="button" onClick={() => void submitOrder()} disabled={isSending}>{isSending ? "Recuperando pedido..." : "Recuperar ou reenviar pedido"}</button>}
       </aside>
     </div>
   </div>;

@@ -10,7 +10,7 @@ const PROMOTIONS: Record<string, bigint> = { KURIO10: 10n, LANCAMENTO: 5n };
 
 function cartKey(scope: string) { return `${CART_PREFIX}${scope}`; }
 
-function readCart(scope: string): CartResponse {
+export function readCart(scope: string): CartResponse {
   try {
     const stored = JSON.parse(localStorage.getItem(cartKey(scope)) ?? "") as CartResponse;
     return { items: Array.isArray(stored.items) ? stored.items : [], coupon: typeof stored.coupon === "string" ? stored.coupon : null };
@@ -37,7 +37,7 @@ function itemDetails(nftId: string, editionId: string) {
   return nft && edition ? { nft, edition } : null;
 }
 
-function quoteFor(cart: CartResponse): CartQuote {
+export function quoteFor(cart: CartResponse): CartQuote {
   const issues: string[] = [];
   let subtotal = 0n;
   const items: QuotedItem[] = cart.items.flatMap((item) => {
@@ -53,6 +53,15 @@ function quoteFor(cart: CartResponse): CartQuote {
   const fee = items.length ? ethUnits("0.016") : 0n;
   const values = { items, coupon: cart.coupon, subtotalEth: ethString(subtotal), discountEth: ethString(discount), networkFeeEth: ethString(fee), totalEth: ethString(subtotal - discount + fee), valid: issues.length === 0, issues };
   return { ...values, revision: JSON.stringify(values) };
+}
+
+export function removePurchasedItems(scope: string, purchased: CartItem[]) {
+  const cart = readCart(scope);
+  const items = cart.items.flatMap((item) => {
+    const bought = purchased.find((entry) => entry.nftId === item.nftId && entry.editionId === item.editionId)?.quantity ?? 0;
+    return item.quantity > bought ? [{ ...item, quantity: item.quantity - bought }] : [];
+  });
+  localStorage.setItem(cartKey(scope), JSON.stringify({ ...cart, items }));
 }
 
 function scenarioFailure(request: Request) {

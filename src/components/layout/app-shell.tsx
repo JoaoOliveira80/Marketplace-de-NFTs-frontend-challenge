@@ -31,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isFavorites = pathname === "/favorites";
   const isCart = pathname === "/cart";
   const isCheckout = pathname === "/checkout";
+  const isOrder = pathname.startsWith("/orders/");
   const navigate = useNavigate();
   const [signOutError, setSignOutError] = useState("");
   const session = useQuery(sessionQueryOptions);
@@ -51,14 +52,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const leaveAccount = () => {
     setSignOutError("");
     signOut.mutate(undefined, {
-      onSuccess: () => { if (isFavorites || isCheckout) void navigate({ to: "/" }); },
+      onSuccess: () => { if (isFavorites || isCheckout || isOrder) void navigate({ to: "/" }); },
       onError: () => setSignOutError("Não foi possível sair. Tente novamente."),
     });
   };
   const mobileQuery = new URLSearchParams(searchStr).get("q") ?? "";
 
   return (
-    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}${isCart ? " app-shell--cart" : ""}${isCheckout ? " app-shell--checkout" : ""}`}>
+    <div className={`app-shell${isDetail ? " app-shell--detail" : ""}${isAuth ? " app-shell--auth" : ""}${isCart ? " app-shell--cart" : ""}${isCheckout ? " app-shell--checkout" : ""}${isOrder ? " app-shell--order" : ""}`}>
       <header className="site-header">
         <div className="site-header__inner">
           <Link className="brand" to="/" aria-label="Kurio — início">
