@@ -182,9 +182,17 @@ input:focus-visible {
   position: relative;
   display: flex;
   min-height: 45px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 32px;
+}
+
+.site-header__inner > .brand {
+  display: flex;
+  height: 35px;
+  flex: 0 0 160px;
+  align-items: center;
+  line-height: 18px;
 }
 
 .site-header__inner::after {
@@ -213,7 +221,9 @@ input:focus-visible {
 
 .desktop-nav {
   display: flex;
+  width: 401px;
   height: 45px;
+  flex: 0 0 auto;
   align-items: stretch;
   gap: 40px;
 }
@@ -221,10 +231,11 @@ input:focus-visible {
 .desktop-nav__link {
   position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   color: var(--foreground);
   font-size: 16px;
   font-weight: 400;
+  line-height: 21px;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -248,6 +259,19 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 28px;
+}
+
+.desktop-actions > .icon-button:first-child {
+  width: 20px;
+}
+
+.desktop-actions > .icon-button:first-child svg {
+  width: 20px;
+  height: 20px;
+}
+
+.desktop-actions > .cart-button {
+  width: 31px;
 }
 
 .icon-button,
@@ -291,13 +315,17 @@ input:focus-visible {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 0 14px;
+  gap: 6px;
+  padding: 0 8px;
   border-radius: 6px;
   background: var(--primary);
   color: var(--primary-foreground);
   font-size: 16px;
   font-weight: 500;
+}
+
+.sign-in-button > svg {
+  flex-shrink: 0;
 }
 
 .icon-button:disabled,
@@ -343,15 +371,15 @@ input:focus-visible {
 }
 
 .footer-highlights {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.35fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.3fr);
   min-height: 250px;
-  padding: 32px 32px 24px;
+  padding: 32px 32px 16px;
 }
 
 .footer-highlight,
 .footer-newsletter {
   min-width: 0;
-  padding-inline: 20px;
+  padding-inline: 16px;
 }
 
 .footer-highlight {
@@ -359,14 +387,14 @@ input:focus-visible {
 }
 
 .footer-highlight:first-child {
-  padding-left: 0;
+  padding-left: 16px;
 }
 
 .footer-highlight__mark {
   display: grid;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 10px;
+  width: 74px;
+  height: 74px;
+  margin-bottom: 12px;
   place-items: center;
   border-radius: 50%;
   background: var(--primary);
@@ -385,14 +413,22 @@ input:focus-visible {
 }
 
 .footer-highlights p {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   color: var(--muted-foreground);
   font-size: 14px;
   line-height: 22px;
 }
 
+.footer-highlight p {
+  max-width: 204px;
+}
+
 .footer-newsletter {
   padding-right: 0;
+}
+
+.footer-newsletter h2 {
+  font-size: 18px;
 }
 
 .footer-newsletter__form {
@@ -402,7 +438,7 @@ input:focus-visible {
 
 .footer-newsletter__form input,
 .footer-newsletter__form button {
-  min-height: 38px;
+  min-height: 40px;
   border: 0;
   font: inherit;
 }
@@ -414,21 +450,22 @@ input:focus-visible {
   border-radius: 5px 0 0 5px;
   background: #3b2411;
   color: var(--foreground);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .footer-newsletter__form input::placeholder {
-  color: #b88f6b;
+  color: #b39463;
   opacity: 1;
 }
 
 .footer-newsletter__form button {
   flex: 0 0 auto;
+  min-width: 85px;
   padding-inline: 14px;
   border-radius: 0 5px 5px 0;
   background: var(--primary);
   color: var(--primary-foreground);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -513,7 +550,7 @@ input:focus-visible {
 }
 
 .footer-social__wallet-heading {
-  margin-top: 10px !important;
+  margin-top: 28px !important;
 }
 
 .footer-wallets {
@@ -526,6 +563,7 @@ input:focus-visible {
   color: #d28a4c;
   font-size: 8px;
   font-weight: 700;
+  line-height: 14px;
   white-space: nowrap;
 }
 
@@ -914,6 +952,7 @@ input:focus-visible {
   margin: 0 0 8px;
   color: var(--foreground);
   font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0.1em;
   line-height: 16px;
 }
@@ -930,7 +969,7 @@ input:focus-visible {
 
 .marketplace-hero__description {
   max-width: 557px;
-  margin: 8px 0 24px;
+  margin: 4px 0 32px;
   color: var(--muted-foreground);
   font-size: 14px;
   line-height: 24px;
@@ -991,8 +1030,8 @@ input:focus-visible {
 }
 
 .marketplace-hero__dots button {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -1029,7 +1068,7 @@ input:focus-visible {
 }
 
 .catalog-filter-group + .catalog-filter-group {
-  margin-top: 24px;
+  margin-top: 40px;
 }
 
 .catalog-filter-group h2 {
@@ -1037,15 +1076,15 @@ input:focus-visible {
   color: var(--foreground);
   font-size: 18px;
   font-weight: 700;
-  line-height: 20px;
+  line-height: 16px;
 }
 
 .catalog-category-list,
 .network-filter ul {
   display: grid;
-  gap: 2px;
+  gap: 0;
   margin: 0;
-  padding: 0;
+  padding: 0 12px;
   list-style: none;
 }
 
@@ -1076,8 +1115,20 @@ input:focus-visible {
 
 .price-filter__ranges {
   position: relative;
-  height: 18px;
-  margin: 2px 6px 11px;
+  height: 23px;
+  margin: 0 12px 12px;
+}
+
+.price-filter__ranges::before {
+  position: absolute;
+  top: calc(50% - 2px);
+  right: 9px;
+  left: 9px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--primary);
+  content: "";
+  pointer-events: none;
 }
 
 .price-filter__ranges label {
@@ -1087,52 +1138,68 @@ input:focus-visible {
 
 .price-filter__ranges input {
   position: absolute;
-  top: 6px;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 6px;
+  height: 23px;
   margin: 0;
   appearance: none;
-  background: #a96332;
+  background: transparent;
   pointer-events: none;
 }
 
+.price-filter__ranges input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.price-filter__ranges input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: transparent;
+}
+
 .price-filter__ranges input::-webkit-slider-thumb {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   appearance: none;
-  border: 2px solid #e8a05b;
+  margin-top: -7px;
+  border: 2px solid var(--card);
   border-radius: 50%;
-  background: #3b2419;
+  background: var(--primary);
   cursor: grab;
   pointer-events: auto;
 }
 
 .price-filter__ranges input::-moz-range-thumb {
-  width: 10px;
-  height: 10px;
-  border: 2px solid #e8a05b;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--card);
   border-radius: 50%;
-  background: #3b2419;
+  background: var(--primary);
   cursor: grab;
   pointer-events: auto;
 }
 
 .price-filter p {
-  margin: 0 0 10px;
+  margin: 0 0 12px 12px;
   color: #d6b99a;
-  font-size: 11px;
+  font-size: 14px;
+  line-height: 16px;
 }
 
 .filter-apply {
-  min-height: 30px;
+  min-height: 38px;
+  margin-left: 12px;
   padding: 0 12px;
   border: 0;
   border-radius: 4px;
   background: var(--primary);
   color: var(--primary-foreground);
   font: inherit;
-  font-size: 12px;
+  font-size: 16px;
+  line-height: 20px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1162,7 +1229,7 @@ input:focus-visible {
 .featured-collection img {
   display: block;
   width: 100%;
-  height: 340px;
+  height: 368px;
   object-fit: cover;
 }
 
@@ -1471,9 +1538,10 @@ input:focus-visible {
 }
 
 .nft-card__price del {
-  color: #a78360;
-  font-size: 11px;
+  color: #b39463;
+  font-size: inherit;
   font-weight: 400;
+  text-decoration: none;
 }
 
 .catalog-empty {
@@ -1938,10 +2006,10 @@ input:focus-visible {
 .home-promo > div {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   padding: 18px 20px;
-  text-align: right;
+  text-align: center;
 }
 
 .home-promo--reverse {
@@ -2157,7 +2225,7 @@ input:focus-visible {
 }
 
 .home-promo > div {
-  padding: 16px 24px;
+  padding: 16px 12px;
 }
 
 .home-promo h2 {
@@ -2236,6 +2304,19 @@ input:focus-visible {
 }
 
 @media (max-width: 1080px) {
+  .site-header__inner {
+    gap: 16px;
+  }
+
+  .site-header__inner > .brand {
+    flex-basis: 90px;
+  }
+
+  .desktop-nav {
+    width: auto;
+    gap: 32px;
+  }
+
   .marketplace-hero {
     height: 400px;
     gap: clamp(24px, 5vw, 60px);
