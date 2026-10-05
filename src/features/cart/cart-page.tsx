@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -8,6 +8,7 @@ import { catalogQueryOptions } from "@/features/catalog/catalog-api";
 import { defaultCatalogSearch } from "@/features/catalog/catalog-search";
 import { cartQueryOptions, guestId, quoteQueryOptions, useCartActions } from "./cart-api";
 import type { QuotedItem } from "./cart-types";
+import type { NftUpdatedEvent } from "@/features/realtime/realtime-types";
 
 function apiMessage(error: unknown, fallback: string) {
   return isAxiosError<{ message?: string }>(error) ? error.response?.data?.message ?? fallback : fallback;
@@ -24,6 +25,17 @@ export function CartPage() {
   const [couponInput, setCouponInput] = useState("");
   const [actionError, setActionError] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [realtimeNotice, setRealtimeNotice] = useState("");
+  useEffect(() => {
+    const onUpdate = (event: Event) => {
+      const update = (event as CustomEvent<NftUpdatedEvent>).detail;
+      if (quote.data?.items.some((item) => item.nftId === update.nftId && item.editionId === update.editionId && (item.unitPriceEth !== update.priceEth || item.available !== update.available))) {
+        setRealtimeNotice("O preço ou a disponibilidade de um NFT no carrinho mudou. Resumo atualizado; revise antes de finalizar.");
+      }
+    };
+    window.addEventListener("kurio:nft-updated", onUpdate);
+    return () => window.removeEventListener("kurio:nft-updated", onUpdate);
+  }, [quote.data]);
   const busy = actions.add.isPending || actions.update.isPending || actions.remove.isPending || actions.applyCoupon.isPending || actions.removeCoupon.isPending;
 
   const changeQuantity = (item: QuotedItem, quantity: number) => {
@@ -70,6 +82,7 @@ export function CartPage() {
           <button className="cart-page__remove" type="button" onClick={() => removeItem(item)} disabled={busy} aria-label={`Remover ${item.name} #${item.tokenId}`}><Trash size={21} /></button>
         </article>)}
         {actionError && <p className="cart-page__action-error" role="alert">{actionError}</p>}
+        {realtimeNotice && <p className="cart-page__action-error" role="status">{realtimeNotice}</p>}
         {quoteReady && quote.data.issues.map((issue) => <p className="cart-page__action-error" role="alert" key={issue}>{issue}</p>)}
       </section>
       <aside className="cart-page__summary" aria-labelledby="cart-summary-title">

@@ -5,6 +5,7 @@ import type { CatalogResponse } from "@/features/catalog/catalog-api";
 import { parseCatalogSearch } from "@/features/catalog/catalog-search";
 import type { NftDetail } from "@/features/nft-detail/nft-detail-data";
 import { nftEditions } from "./nft-inventory";
+import { currentCatalog } from "./realtime-state";
 
 const PAGE_SIZE = 9;
 
@@ -20,14 +21,14 @@ function sortNfts(items: CatalogNft[], tab: string, sort: string) {
 export const catalogHandlers = [
   http.get("/api/nfts/:nftId", async ({ params }) => {
     await delay(240);
-    const nft = catalogNfts.find((item) => item.id === params.nftId);
+    const nft = currentCatalog().find((item) => item.id === params.nftId);
     if (!nft) return HttpResponse.json({ message: "NFT não encontrado." }, { status: 404 });
     const emerald = nft.id === "emerald-ape-0042";
     const related = emerald
       ? ["cosmic-bloom-0118", "violet-nomad-0314", "ivory-baron-0088", "golden-beat-0207", "golden-signal-0160"]
-          .map((id) => catalogNfts.find((item) => item.id === id))
+          .map((id) => currentCatalog().find((item) => item.id === id))
           .filter((item): item is CatalogNft => Boolean(item))
-      : catalogNfts.filter((item) => item.id !== nft.id && item.category === nft.category).slice(0, 5);
+      : currentCatalog().filter((item) => item.id !== nft.id && item.category === nft.category).slice(0, 5);
     const detail: NftDetail = {
       ...nft,
       description: emerald
@@ -67,7 +68,7 @@ export const catalogHandlers = [
 
     const q = search.q.trim().toLocaleLowerCase("pt-BR");
     const networks = search.network.split(",").filter(Boolean);
-    const matches = catalogNfts.filter((nft) =>
+    const matches = currentCatalog().filter((nft) =>
       (!q || `${nft.name} #${nft.tokenId}`.toLocaleLowerCase("pt-BR").includes(q)) &&
       (!search.category || nft.category === search.category) &&
       (!networks.length || networks.includes(nft.network)) &&

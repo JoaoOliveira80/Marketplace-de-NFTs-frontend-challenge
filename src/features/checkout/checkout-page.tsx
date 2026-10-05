@@ -9,6 +9,7 @@ import type { CartQuote } from "@/features/cart/cart-types";
 import { readCheckoutDraft, revalidateQuote, saveCheckoutDraft, useWalletConnection, walletsQueryOptions, type CheckoutProfile, type SavedWallet, type WalletNetwork, type WalletProvider } from "./checkout-api";
 import { clearOrderIntent, createOrder, readOrderIntent, recoverOrder, saveOrderIntent, type OrderIntent } from "@/features/orders/order-api";
 import { profileQueryOptions } from "@/features/account/account-api";
+import type { NftUpdatedEvent } from "@/features/realtime/realtime-types";
 
 const providers: WalletProvider[] = ["WalletConnect", "MetaMask", "Coinbase Wallet"];
 const networks: WalletNetwork[] = ["Ethereum", "Polygon", "Solana"];
@@ -76,6 +77,17 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
     }
   }, [collectorProfile.data]);
   useEffect(() => { window.sessionStorage.setItem(`kurio-checkout-wallet-${user.id}`, selectedWalletId); }, [selectedWalletId, user.id]);
+  useEffect(() => {
+    const onUpdate = (event: Event) => {
+      const update = (event as CustomEvent<NftUpdatedEvent>).detail;
+      if (!quote.data?.items.some((item) => item.nftId === update.nftId && item.editionId === update.editionId && (item.unitPriceEth !== update.priceEth || item.available !== update.available))) return;
+      setReviewedRevision(null);
+      setReviewConfirmed(false);
+      setQuoteError("O preço ou a disponibilidade de um NFT mudou. Confira a cotação atualizada e revise a compra novamente.");
+    };
+    window.addEventListener("kurio:nft-updated", onUpdate);
+    return () => window.removeEventListener("kurio:nft-updated", onUpdate);
+  }, [quote.data]);
   useEffect(() => {
     const intent = readOrderIntent(user.id);
     if (!intent) return;
@@ -278,7 +290,7 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
         {quoteError && <p className="checkout-message checkout-message--error" id="checkout-quote-message" role="alert"><WarningCircle size={17} /> {quoteError}</p>}
         {stale && <p className="checkout-message checkout-message--error" role="alert">A cotação mudou durante a revisão. Confira os valores e revise novamente.</p>}
         {orderError && <p className="checkout-message checkout-message--error" role="alert">{orderError}</p>}
-        <button className="checkout-summary__primary" type="submit" form="checkout-form" disabled={!ready || revalidation.isPending || Boolean(pendingIntent)}>{revalidation.isPending ? "Revalidando cotação..." : pendingIntent ? "Pedido em andamento" : reviewedRevision && !stale ? "Revisar novamente" : "Confirmar compra"}</button>
+        <button className="checkout-summary__primary" type="submit" form="checkout-form" disabled={!ready || quote.isFetching || revalidation.isPending || Boolean(pendingIntent)}>{revalidation.isPending ? "Revalidando cotação..." : pendingIntent ? "Pedido em andamento" : reviewedRevision && !stale ? "Revisar novamente" : "Confirmar compra"}</button>
         {reviewedRevision && !stale && quote.data && <section className="checkout-review" aria-labelledby="checkout-review-title"><h2 id="checkout-review-title">Revisão da compra</h2><p>{quote.data.items.reduce((sum, item) => sum + item.quantity, 0)} NFT(s) · {quote.data.totalEth} ETH</p><p>Carteira: {selectedWallet?.name} · Rede {profile.network || selectedWallet?.network}</p><p>Colecionador: {profile.displayName}</p>{profile.useOtherWallet && <p>Receber em: {profile.secondaryAddress}</p>}{reviewConfirmed ? <button type="button" onClick={() => void submitOrder()} disabled={isSending || revalidation.isPending}>{isSending ? "Enviando pedido..." : "Enviar pedido"}</button> : <button type="button" onClick={() => void confirmReview()} disabled={revalidation.isPending}>Confirmar revisão</button>}</section>}
         {pendingIntent && <button className="checkout-review__retry" type="button" onClick={() => void submitOrder()} disabled={isSending}>{isSending ? "Recuperando pedido..." : "Recuperar ou reenviar pedido"}</button>}
       </aside>

@@ -3,6 +3,7 @@ import type { Order, OrderInput } from "@/features/orders/order-api";
 import type { WalletState } from "@/features/checkout/checkout-api";
 import { authenticatedUser, authError } from "./account-handlers";
 import { quoteFor, readCart, removePurchasedItems } from "./cart-handlers";
+import { publishOrder } from "./realtime-handlers";
 
 interface StoredOrder extends Order {
   userId: string;
@@ -26,10 +27,10 @@ function writeOrders(userId: string, orders: StoredOrder[]) {
   localStorage.setItem(ordersKey(userId), JSON.stringify(orders));
 }
 
-function currentOrder(userId: string, id: string): StoredOrder | undefined {
+function currentOrder(userId: string, id: string, force = false): StoredOrder | undefined {
   const orders = readOrders(userId);
   const order = orders.find((entry) => entry.id === id);
-  if (!order || order.status !== "pending" || Date.now() < order.settleAt) return order;
+  if (!order || order.status !== "pending" || (!force && Date.now() < order.settleAt)) return order;
   const updated: StoredOrder = { ...order, status: order.outcome, version: order.version + 1 };
   if (updated.status === "confirmed") {
     updated.transactionId = `0x${order.id.replaceAll("-", "").padEnd(64, "0")}`;
@@ -39,7 +40,13 @@ function currentOrder(userId: string, id: string): StoredOrder | undefined {
     }
   }
   writeOrders(userId, orders.map((entry) => entry.id === id ? updated : entry));
+  publishOrder({ eventId: crypto.randomUUID(), orderId: id, userId, version: updated.version, status: order.outcome });
   return updated;
+}
+
+export function settleOrderNow(userId: string, id: string): Order | null {
+  const order = currentOrder(userId, id, true);
+  return order ? publicOrder(order) : null;
 }
 
 function publicOrder(order: StoredOrder): Order {
@@ -93,6 +100,7 @@ export const orderHandlers = [
       },
     };
     writeOrders(user.id, [...readOrders(user.id), order]);
+    window.setTimeout(() => { currentOrder(user.id, id); }, Math.max(0, order.settleAt - Date.now()));
     if (scenario === "order-timeout") {
       await delay(900);
       return HttpResponse.json({ message: "A resposta expirou após o pedido ser criado.", code: "ORDER_TIMEOUT" }, { status: 504 });

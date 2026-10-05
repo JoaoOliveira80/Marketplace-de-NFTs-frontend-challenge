@@ -3,6 +3,8 @@ export interface CatalogNft {
   name: string;
   tokenId: string;
   priceEth: string;
+  version?: number;
+  available?: number;
   image: string;
   network: "Ethereum" | "Polygon" | "Solana";
   category: string;

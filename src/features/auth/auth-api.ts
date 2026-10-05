@@ -24,6 +24,7 @@ async function establishSession(queryClient: QueryClient, response: AuthResponse
   window.localStorage.setItem("kurio-session-token", response.token);
   queryClient.clear();
   queryClient.setQueryData(["session"], { user: response.user });
+  window.dispatchEvent(new Event("kurio:session-established"));
   try { await mergeGuestCart(); } catch { /* The cart query retries this merge while guest items remain stored. */ }
 }
 

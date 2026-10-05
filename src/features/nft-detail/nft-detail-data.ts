@@ -5,6 +5,7 @@ export interface NftEdition {
   label: string;
   priceEth: string;
   available: number;
+  version?: number;
 }
 
 export interface NftDetail extends CatalogNft {

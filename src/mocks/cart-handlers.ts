@@ -4,6 +4,7 @@ import { ethString, ethUnits } from "@/features/cart/eth";
 import type { CartItem, CartQuote, CartResponse, QuotedItem } from "@/features/cart/cart-types";
 import { authenticatedUser, authError, tokenFrom } from "./account-handlers";
 import { nftEditions } from "./nft-inventory";
+import { currentCatalogNft } from "./realtime-state";
 
 const CART_PREFIX = "kurio-cart-";
 const PROMOTIONS: Record<string, bigint> = { KURIO10: 10n, LANCAMENTO: 5n };
@@ -32,7 +33,8 @@ function scopeFor(request: Request): string | null {
 }
 
 function itemDetails(nftId: string, editionId: string) {
-  const nft = catalogNfts.find((entry) => entry.id === nftId);
+  const base = catalogNfts.find((entry) => entry.id === nftId);
+  const nft = base && currentCatalogNft(base);
   const edition = nft && nftEditions(nft).find((entry) => entry.id === editionId);
   return nft && edition ? { nft, edition } : null;
 }

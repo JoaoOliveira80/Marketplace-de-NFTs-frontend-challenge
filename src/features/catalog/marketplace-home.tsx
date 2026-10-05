@@ -434,7 +434,7 @@ function NftCard({ nft }: { nft: CatalogNft }) {
         <div className="nft-card__image-wrap">
           <img className="nft-card__image" src={nft.image} alt={`${nft.name} #${nft.tokenId}`} loading="lazy" />
           {nft.id === featuredNft.id && <span className="nft-card__favorite-mark" aria-hidden="true"><Heart size={16} weight="regular" /></span>}
-          {nft.isRare && <span className="nft-card__badge">RARO</span>}
+          {nft.available === 0 ? <span className="nft-card__badge">ESGOTADO</span> : nft.isRare && <span className="nft-card__badge">RARO</span>}
         </div>
         <h2>{nft.name} <span>#{nft.tokenId}</span></h2>
       </Link>
