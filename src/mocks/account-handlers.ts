@@ -1,7 +1,7 @@
 import { delay, http, HttpResponse } from "msw";
 import { catalogNfts } from "@/features/catalog/catalog-data";
 
-interface MockUser { id: string; name: string; email: string; passwordHash: string }
+interface MockUser { id: string; name: string; email: string; passwordHash: string; username?: string; ensName?: string; walletNickname?: string; avatar?: string | null }
 interface MockSession { userId: string; expiresAt: number }
 interface MockError { message: string; code: string; fields?: Record<string, string> }
 
@@ -20,7 +20,13 @@ function readStored<T>(key: string, fallback: T): T {
 }
 
 function users(): MockUser[] {
-  return [...seededUsers, ...readStored<MockUser[]>(USERS_KEY, [])];
+  const stored = readStored<MockUser[]>(USERS_KEY, []);
+  return [...seededUsers.map((seed) => stored.find((entry) => entry.id === seed.id) ?? seed), ...stored.filter((entry) => !seededUsers.some((seed) => seed.id === entry.id))];
+}
+
+function saveUser(user: MockUser) {
+  const stored = readStored<MockUser[]>(USERS_KEY, []);
+  localStorage.setItem(USERS_KEY, JSON.stringify([...stored.filter((entry) => entry.id !== user.id), user]));
 }
 
 function sessions(): Record<string, MockSession> {
@@ -117,17 +123,63 @@ export const accountHandlers = [
     }
     if (password !== body.confirmPassword) fields.confirmPassword = "As senhas não coincidem.";
     if (Object.keys(fields).length) return HttpResponse.json<MockError>({ message: "Revise os campos indicados.", code: "VALIDATION_ERROR", fields }, { status: 422 });
-    if (users().some((user) => user.email === email || user.name.toLowerCase() === name.toLowerCase())) {
+    if (users().some((user) => user.email === email || (user.username ?? user.name.toLowerCase()) === name.toLowerCase())) {
       return HttpResponse.json<MockError>({
         message: "Este e-mail ou nome de usuário já está em uso.",
         code: "ACCOUNT_CONFLICT",
         fields: { [users().some((user) => user.email === email) ? "email" : "name"]: "Já cadastrado." },
       }, { status: 409 });
     }
-    const user: MockUser = { id: crypto.randomUUID(), name, email, passwordHash: await hashPassword(password) };
-    const registered = readStored<MockUser[]>(USERS_KEY, []);
-    localStorage.setItem(USERS_KEY, JSON.stringify([...registered, user]));
+    const user: MockUser = { id: crypto.randomUUID(), name, username: name.toLowerCase(), email, passwordHash: await hashPassword(password) };
+    saveUser(user);
     return HttpResponse.json(createSession(user), { status: 201 });
+  }),
+  http.get("/api/profile", async ({ request }) => {
+    await delay(160);
+    const user = authenticatedUser(request);
+    if (!user) return authError();
+    if (request.headers.get("X-Mock-Scenario") === "profile-error") return HttpResponse.json({ message: "Perfil temporariamente indisponível." }, { status: 503 });
+    return HttpResponse.json({ displayName: user.name, username: user.username ?? user.name.toLowerCase(), email: user.email,
+      ensName: user.ensName ?? "", walletNickname: user.walletNickname ?? "", avatar: user.avatar ?? null });
+  }),
+  http.put("/api/profile", async ({ request }) => {
+    await delay(220);
+    const user = authenticatedUser(request);
+    if (!user) return authError();
+    if (request.headers.get("X-Mock-Scenario") === "profile-error") return HttpResponse.json({ message: "Não foi possível salvar o perfil." }, { status: 503 });
+    const input = await request.json() as { displayName?: string; username?: string; email?: string; ensName?: string; walletNickname?: string; avatar?: string | null };
+    const displayName = input.displayName?.trim() ?? "";
+    const username = input.username?.trim().toLowerCase() ?? "";
+    const email = input.email?.trim().toLowerCase() ?? "";
+    const ensName = input.ensName?.trim().toLowerCase() ?? "";
+    const walletNickname = input.walletNickname?.trim() ?? "";
+    const fields: Record<string, string> = {};
+    if (displayName.length < 2 || displayName.length > 50) fields.displayName = "Use de 2 a 50 caracteres.";
+    if (!/^[\p{L}\p{N}_]{3,24}$/u.test(username)) fields.username = "Use de 3 a 24 letras, números ou _.";
+    if (!emailValid(email)) fields.email = "Informe um e-mail válido.";
+    if (!/^[a-z0-9.-]{3,63}$/.test(ensName)) fields.ensName = "Informe um nome ENS válido, sem .eth.";
+    if (walletNickname.length < 2 || walletNickname.length > 40) fields.walletNickname = "Use de 2 a 40 caracteres.";
+    if (input.avatar !== null && input.avatar !== undefined && (!/^data:image\/(png|jpeg|webp);base64,/.test(input.avatar) || input.avatar.length > 700_000)) fields.avatar = "Use PNG, JPG ou WebP de até 500 KB.";
+    if (Object.keys(fields).length) return HttpResponse.json({ message: "Revise os campos indicados.", code: "VALIDATION_ERROR", fields }, { status: 422 });
+    const conflict = users().find((entry) => entry.id !== user.id && (entry.email === email || (entry.username ?? entry.name.toLowerCase()) === username));
+    if (conflict) return HttpResponse.json({ message: "E-mail ou nome de usuário já cadastrado.", code: "PROFILE_CONFLICT",
+      fields: { [conflict.email === email ? "email" : "username"]: "Já cadastrado." } }, { status: 409 });
+    saveUser({ ...user, name: displayName, username, email, ensName, walletNickname, avatar: input.avatar ?? null });
+    return HttpResponse.json({ displayName, username, email, ensName, walletNickname, avatar: input.avatar ?? null });
+  }),
+  http.put("/api/profile/password", async ({ request }) => {
+    await delay(220);
+    const user = authenticatedUser(request);
+    if (!user) return authError();
+    if (request.headers.get("X-Mock-Scenario") === "profile-error") return HttpResponse.json({ message: "Não foi possível alterar a senha." }, { status: 503 });
+    const input = await request.json() as { currentPassword?: string; newPassword?: string; confirmPassword?: string };
+    const fields: Record<string, string> = {};
+    if (await hashPassword(input.currentPassword ?? "") !== user.passwordHash) fields.currentPassword = "Senha atual incorreta.";
+    if (!input.newPassword || input.newPassword.length < 8 || !/[A-Z]/.test(input.newPassword) || !/[a-z]/.test(input.newPassword) || !/\d/.test(input.newPassword)) fields.newPassword = "Use 8 caracteres ou mais, com maiúscula, minúscula e número.";
+    if (input.confirmPassword !== input.newPassword) fields.confirmPassword = "As senhas não coincidem.";
+    if (Object.keys(fields).length) return HttpResponse.json({ message: "Não foi possível alterar a senha.", code: "PASSWORD_VALIDATION", fields }, { status: 422 });
+    saveUser({ ...user, passwordHash: await hashPassword(input.newPassword ?? "") });
+    return HttpResponse.json({ success: true });
   }),
   http.get("/api/favorites", ({ request }) => {
     const user = authenticatedUser(request);

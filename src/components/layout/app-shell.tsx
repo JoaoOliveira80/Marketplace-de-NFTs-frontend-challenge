@@ -32,6 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isCart = pathname === "/cart";
   const isCheckout = pathname === "/checkout";
   const isOrder = pathname.startsWith("/orders/");
+  const isAccount = pathname === "/profile" || pathname === "/wallets";
   const navigate = useNavigate();
   const [signOutError, setSignOutError] = useState("");
   const session = useQuery(sessionQueryOptions);
@@ -52,7 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const leaveAccount = () => {
     setSignOutError("");
     signOut.mutate(undefined, {
-      onSuccess: () => { if (isFavorites || isCheckout || isOrder) void navigate({ to: "/" }); },
+      onSuccess: () => { if (isFavorites || isCheckout || isOrder || isAccount) void navigate({ to: "/" }); },
       onError: () => setSignOutError("Não foi possível sair. Tente novamente."),
     });
   };
@@ -67,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="desktop-nav" aria-label="Navegação principal">
-            <Link className="desktop-nav__link" to="/" activeOptions={{ exact: true }} aria-current={isHome ? "page" : undefined}>
+            <Link className="desktop-nav__link" to="/" activeOptions={{ exact: true }} aria-current={isHome || isAccount ? "page" : undefined}>
               Início
             </Link>
             {primarySections.map((section) => section === "Mercado" ? <a className="desktop-nav__link" href="/#catalogo" key={section} aria-current={isDetail || isCart || isCheckout ? "page" : undefined}>Mercado</a> : <span className="desktop-nav__link" key={section}>{section}</span>)}
@@ -81,6 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <ShoppingCart aria-hidden="true" size={23} weight="regular" />
               {cartCount > 0 && <span className="cart-count" aria-hidden="true">{cartCount}</span>}
             </Link>
+            {session.data?.user && <Link className="icon-button" to="/profile" aria-label="Meu perfil"><UserCircle aria-hidden="true" size={23} /></Link>}
             <button className="sign-in-button" type="button" onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
               <SignIn aria-hidden="true" size={18} weight="regular" />
               {session.data?.user ? "Sair" : "Entrar"}
@@ -147,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="footer-links">
             <section className="footer-link-group">
               <h2>Meu perfil</h2>
-              <span>Meu perfil</span>
+              <Link to="/profile">Meu perfil</Link>
               <span>Minha coleção</span>
               <span>Atividade</span>
               <span>Estúdio do criador</span>
@@ -200,9 +202,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link className={`mobile-bottom-nav__item${isCart ? " is-active" : ""}`} to="/cart" aria-label={`Carrinho: ${cartCount} ${cartCount === 1 ? "item" : "itens"}`} aria-current={isCart ? "page" : undefined}>
           <ShoppingCart aria-hidden="true" size={22} weight="regular" />
         </Link>
-        <button className="mobile-bottom-nav__item" type="button" aria-label={session.data?.user ? "Sair da conta" : "Entrar na conta"} onClick={session.data?.user ? leaveAccount : goToLogin} disabled={signOut.isPending}>
-          <UserCircle aria-hidden="true" size={22} weight="regular" />
-        </button>
+        {session.data?.user ? <Link className={`mobile-bottom-nav__item${isAccount ? " is-active" : ""}`} to="/profile" aria-label="Meu perfil" aria-current={isAccount ? "page" : undefined}><UserCircle aria-hidden="true" size={22} weight="regular" /></Link> :
+          <button className="mobile-bottom-nav__item" type="button" aria-label="Entrar na conta" onClick={goToLogin}><UserCircle aria-hidden="true" size={22} weight="regular" /></button>}
       </nav>
     </div>
   );

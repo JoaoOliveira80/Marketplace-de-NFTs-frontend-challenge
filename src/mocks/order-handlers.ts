@@ -71,7 +71,7 @@ export const orderHandlers = [
       if (existing.payload !== payload) return HttpResponse.json({ message: "Esta chave já foi usada com dados diferentes.", code: "IDEMPOTENCY_CONFLICT" }, { status: 409 });
       return HttpResponse.json(publicOrder(currentOrder(user.id, existing.id) ?? existing));
     }
-    if (!input?.profile?.displayName?.trim() || !input.profile.email?.trim() || !input.profile.referralCode?.trim() || !input.profile.ensName?.trim()) {
+    if (!input?.profile?.displayName?.trim() || !input.profile.email?.trim() || !input.profile.referralCode?.trim() || !input.profile.ensName?.trim() || (input.profile.useOtherWallet && !input.profile.secondaryAddress?.trim())) {
       return HttpResponse.json({ message: "Revise os dados obrigatórios do colecionador.", code: "VALIDATION_ERROR" }, { status: 422 });
     }
     const wallet = connectedWallet(user.id, input);
@@ -88,7 +88,8 @@ export const orderHandlers = [
       outcome: scenario === "order-refused" ? "refused" : "confirmed", cartApplied: false,
       receipt: {
         quote: structuredClone(quote), collectorName: input.profile.displayName.trim(), walletName: wallet.name,
-        walletAddress: wallet.address, provider: input.provider, network: input.network, note: input.profile.note.trim(),
+        walletAddress: input.profile.useOtherWallet ? input.profile.secondaryAddress.trim() : wallet.address,
+        provider: input.provider, network: input.network, note: input.profile.note.trim(),
       },
     };
     writeOrders(user.id, [...readOrders(user.id), order]);

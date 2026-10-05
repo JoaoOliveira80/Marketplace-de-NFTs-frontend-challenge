@@ -10,8 +10,14 @@ export interface SavedWallet {
   address: string;
   network: WalletNetwork;
   provider: WalletProvider;
+  displayName?: string;
+  profileName?: string;
+  secondaryAddress?: string;
+  referralCode?: string;
+  email?: string;
+  ensName?: string;
 }
-export interface WalletState { wallets: SavedWallet[]; connectedWalletId: string | null; connectedProvider: WalletProvider | null }
+export interface WalletState { wallets: SavedWallet[]; connectedWalletId: string | null; connectedProvider: WalletProvider | null; secondaryUsesPrimary?: boolean }
 export interface CheckoutProfile {
   displayName: string;
   username: string;

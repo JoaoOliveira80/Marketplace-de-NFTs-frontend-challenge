@@ -8,6 +8,7 @@ import { cartQueryOptions, quoteQueryOptions } from "@/features/cart/cart-api";
 import type { CartQuote } from "@/features/cart/cart-types";
 import { readCheckoutDraft, revalidateQuote, saveCheckoutDraft, useWalletConnection, walletsQueryOptions, type CheckoutProfile, type SavedWallet, type WalletNetwork, type WalletProvider } from "./checkout-api";
 import { clearOrderIntent, createOrder, readOrderIntent, recoverOrder, saveOrderIntent, type OrderIntent } from "@/features/orders/order-api";
+import { profileQueryOptions } from "@/features/account/account-api";
 
 const providers: WalletProvider[] = ["WalletConnect", "MetaMask", "Coinbase Wallet"];
 const networks: WalletNetwork[] = ["Ethereum", "Polygon", "Solana"];
@@ -41,6 +42,8 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
   const cart = useQuery(cartQueryOptions(scope));
   const quote = useQuery({ ...quoteQueryOptions(scope), enabled: cart.isSuccess });
   const wallets = useQuery(walletsQueryOptions(user.id));
+  const collectorProfile = useQuery(profileQueryOptions(user.id));
+  const hadDraftAtMount = useRef(Boolean(window.sessionStorage.getItem(`kurio-checkout-draft-${user.id}`)));
   const walletActions = useWalletConnection(user.id);
   const orderSubmission = useMutation({ mutationFn: createOrder });
   const [profile, setProfile] = useState<CheckoutProfile>(() => initialProfile(user));
@@ -64,6 +67,14 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
   const ready = Boolean(quote.data?.valid && quote.data.items.length && connected);
 
   useEffect(() => { saveCheckoutDraft(user.id, profile); }, [profile, user.id]);
+  useEffect(() => {
+    if (collectorProfile.data && !hadDraftAtMount.current) {
+      const saved = collectorProfile.data;
+      setProfile((current) => ({ ...current, displayName: saved.displayName, username: saved.username,
+        email: saved.email, ensName: saved.ensName }));
+      hadDraftAtMount.current = true;
+    }
+  }, [collectorProfile.data]);
   useEffect(() => { window.sessionStorage.setItem(`kurio-checkout-wallet-${user.id}`, selectedWalletId); }, [selectedWalletId, user.id]);
   useEffect(() => {
     const intent = readOrderIntent(user.id);
@@ -86,7 +97,11 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
   const chooseWallet = (wallet: SavedWallet) => {
     setSelectedWalletId(wallet.id);
     setProviderChoice(wallet.provider);
-    patchProfile({ network: wallet.network, walletAddress: wallet.address, walletType: wallet.provider, ensName: wallet.address.endsWith(".eth") ? wallet.address.slice(0, -4) : profile.ensName });
+    const receiver = wallets.data?.secondaryUsesPrimary ? wallets.data.wallets.find((entry) => entry.id === "primary") : wallets.data?.wallets.find((entry) => entry.id !== "primary");
+    patchProfile({ network: wallet.network, walletAddress: wallet.address, walletType: wallet.provider,
+      profileName: wallet.profileName ?? profile.profileName, referralCode: wallet.referralCode ?? profile.referralCode,
+      email: wallet.email ?? profile.email, secondaryAddress: receiver?.address ?? wallet.secondaryAddress ?? profile.secondaryAddress,
+      ensName: wallet.ensName ?? (wallet.address.endsWith(".eth") ? wallet.address.slice(0, -4) : profile.ensName) });
     setWalletError("");
   };
   const chooseProvider = (provider: WalletProvider) => {

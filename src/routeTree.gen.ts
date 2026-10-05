@@ -14,7 +14,9 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as WalletsRouteImport } from './routes/wallets'
 import { Route as NftNftIdRouteImport } from './routes/nft.$nftId'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 
@@ -43,9 +45,19 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletsRoute = WalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NftNftIdRoute = NftNftIdRouteImport.update({
@@ -65,7 +77,9 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/wallets': typeof WalletsRoute
   '/nft/$nftId': typeof NftNftIdRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
 }
@@ -75,7 +89,9 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/wallets': typeof WalletsRoute
   '/nft/$nftId': typeof NftNftIdRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
 }
@@ -86,7 +102,9 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/wallets': typeof WalletsRoute
   '/nft/$nftId': typeof NftNftIdRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
 }
@@ -98,7 +116,9 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/login'
+    | '/profile'
     | '/register'
+    | '/wallets'
     | '/nft/$nftId'
     | '/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +128,9 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/login'
+    | '/profile'
     | '/register'
+    | '/wallets'
     | '/nft/$nftId'
     | '/orders/$orderId'
   id:
@@ -118,7 +140,9 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/login'
+    | '/profile'
     | '/register'
+    | '/wallets'
     | '/nft/$nftId'
     | '/orders/$orderId'
   fileRoutesById: FileRoutesById
@@ -129,7 +153,9 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   FavoritesRoute: typeof FavoritesRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  WalletsRoute: typeof WalletsRoute
   NftNftIdRoute: typeof NftNftIdRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
 }
@@ -171,11 +197,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallets': {
+      id: '/wallets'
+      path: '/wallets'
+      fullPath: '/wallets'
+      preLoaderRoute: typeof WalletsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nft/$nftId': {
@@ -201,7 +241,9 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   FavoritesRoute: FavoritesRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  WalletsRoute: WalletsRoute,
   NftNftIdRoute: NftNftIdRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
 }

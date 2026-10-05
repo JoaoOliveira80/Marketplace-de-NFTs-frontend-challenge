@@ -12,7 +12,7 @@ api.interceptors.request.use((config) => {
   const token = window.localStorage.getItem("kurio-session-token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   const scenario = new URLSearchParams(window.location.search).get("mock");
-  if (scenario === "favorite-error" || scenario === "session-expired") {
+  if (scenario === "favorite-error" || scenario === "session-expired" || scenario === "profile-error" || scenario === "wallet-error") {
     config.headers["X-Mock-Scenario"] = scenario;
   }
   return config;
