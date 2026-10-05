@@ -10,6 +10,8 @@ import { readCheckoutDraft, revalidateQuote, saveCheckoutDraft, useWalletConnect
 import { clearOrderIntent, createOrder, readOrderIntent, recoverOrder, saveOrderIntent, type OrderIntent } from "@/features/orders/order-api";
 import { profileQueryOptions } from "@/features/account/account-api";
 import type { NftUpdatedEvent } from "@/features/realtime/realtime-types";
+import { Input } from "@/components/ui/input";
+import { NftImage } from "@/components/nft-image";
 
 const providers: WalletProvider[] = ["WalletConnect", "MetaMask", "Coinbase Wallet"];
 const networks: WalletNetwork[] = ["Ethereum", "Polygon", "Solana"];
@@ -253,16 +255,16 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
       <form className="checkout-form" id="checkout-form" onSubmit={(event) => void startReview(event)} noValidate>
         <h1>Perfil do colecionador</h1>
         <div className="checkout-form__grid">
-          <label>Nome de exibição <b>*</b><input {...fieldA11y("checkout-display-name")} value={profile.displayName} onChange={changeField("displayName")} autoComplete="name" required /></label>
-          <label>Nome de usuário <b>*</b><input {...fieldA11y("checkout-username")} value={profile.username} onChange={changeField("username")} required /></label>
+          <label>Nome de exibição <b>*</b><Input {...fieldA11y("checkout-display-name")} value={profile.displayName} onChange={changeField("displayName")} autoComplete="name" required /></label>
+          <label>Nome de usuário <b>*</b><Input {...fieldA11y("checkout-username")} value={profile.username} onChange={changeField("username")} required /></label>
           <label>Rede <b>*</b><select {...fieldA11y("checkout-network")} value={profile.network || selectedWallet?.network || ""} onChange={(event) => patchProfile({ network: event.target.value as WalletNetwork })} required><option value="">Selecione uma rede</option>{networks.map((network) => <option key={network} value={network}>{network}</option>)}</select></label>
-          <label>Nome do perfil <b>*</b><input {...fieldA11y("checkout-profile-name")} value={profile.profileName} onChange={changeField("profileName")} required /></label>
-          <label>Endereço da carteira <b>*</b><input {...fieldA11y("checkout-wallet-address")} value={profile.walletAddress || selectedWallet?.address || ""} onChange={changeField("walletAddress")} placeholder="Endereço 0x da carteira" required /></label>
-          <label className="checkout-form__secondary"><span>Carteira secundária</span><input {...fieldA11y("checkout-secondary")} value={profile.secondaryAddress} onChange={changeField("secondaryAddress")} placeholder="ENS ou carteira secundária (opcional)" /></label>
+          <label>Nome do perfil <b>*</b><Input {...fieldA11y("checkout-profile-name")} value={profile.profileName} onChange={changeField("profileName")} required /></label>
+          <label>Endereço da carteira <b>*</b><Input {...fieldA11y("checkout-wallet-address")} value={profile.walletAddress || selectedWallet?.address || ""} onChange={changeField("walletAddress")} placeholder="Endereço 0x da carteira" required /></label>
+          <label className="checkout-form__secondary"><span>Carteira secundária</span><Input {...fieldA11y("checkout-secondary")} value={profile.secondaryAddress} onChange={changeField("secondaryAddress")} placeholder="ENS ou carteira secundária (opcional)" /></label>
           <label>Tipo de carteira <b>*</b><select {...fieldA11y("checkout-wallet-type")} value={profile.walletType || providerChoice || selectedWallet?.provider || ""} onChange={(event) => chooseProvider(event.target.value as WalletProvider)} required><option value="">Selecione uma carteira</option>{providers.map((provider) => <option key={provider} value={provider}>{provider}</option>)}</select></label>
-          <label>Código de indicação <b>*</b><input {...fieldA11y("checkout-referral")} value={profile.referralCode} onChange={changeField("referralCode")} required /></label>
-          <label>E-mail <b>*</b><input {...fieldA11y("checkout-email")} type="email" value={profile.email} onChange={changeField("email")} autoComplete="email" required /></label>
-          <label>Nome ENS <b>*</b><div className="checkout-form__ens"><span>.eth</span><input {...fieldA11y("checkout-ens")} value={profile.ensName} onChange={changeField("ensName")} placeholder="Nome ENS" required /></div></label>
+          <label>Código de indicação <b>*</b><Input {...fieldA11y("checkout-referral")} value={profile.referralCode} onChange={changeField("referralCode")} required /></label>
+          <label>E-mail <b>*</b><Input {...fieldA11y("checkout-email")} type="email" value={profile.email} onChange={changeField("email")} autoComplete="email" required /></label>
+          <label>Nome ENS <b>*</b><div className="checkout-form__ens"><span>.eth</span><Input {...fieldA11y("checkout-ens")} value={profile.ensName} onChange={changeField("ensName")} placeholder="Nome ENS" required /></div></label>
         </div>
         <label className="checkout-form__alternate"><input type="checkbox" checked={profile.useOtherWallet} onChange={(event) => patchProfile({ useOtherWallet: event.target.checked })} />Usar outra carteira para receber os NFTs?</label>
         <label className="checkout-form__note">Observação do colecionador (opcional)<textarea value={profile.note} onChange={changeField("note")} rows={6} /></label>
@@ -272,7 +274,7 @@ function CheckoutContent({ user }: { user: { id: string; name: string; email: st
         <section className="checkout-summary__items"><h2>Seus NFTs</h2><div className="checkout-summary__table-head"><span>NFTs</span><span>Subtotal</span></div>
           {(cart.isPending || quote.isPending) && <p role="status">Carregando cotação...</p>}
           {(cart.isError || quote.isError) && <div role="alert"><p>Não foi possível carregar a cotação.</p><button type="button" onClick={() => { void cart.refetch(); void quote.refetch(); }}>Tentar novamente</button></div>}
-          {quote.data?.items.map((item) => <div className="checkout-summary__item" key={`${item.nftId}:${item.editionId}`}><img src={item.image} alt="" /><div><strong>{item.name} #{item.tokenId}</strong><small>ID do token: #{item.tokenId}</small></div><span>(x {item.quantity})</span><b>{item.lineTotalEth} ETH</b></div>)}
+          {quote.data?.items.map((item) => <div className="checkout-summary__item" key={`${item.nftId}:${item.editionId}`}><NftImage image={item.image} alt="" sizes="72px" /><div><strong>{item.name} #{item.tokenId}</strong><small>ID do token: #{item.tokenId}</small></div><span>(x {item.quantity})</span><b>{item.lineTotalEth} ETH</b></div>)}
           {quote.data?.items.length === 0 && <p>Seu carrinho está vazio. <Link to="/">Explorar NFTs</Link></p>}
           {cart.data?.coupon && <p className="checkout-summary__coupon">Cupom {cart.data.coupon} aplicado</p>}
           {quote.data && <QuoteTotals quote={quote.data} />}

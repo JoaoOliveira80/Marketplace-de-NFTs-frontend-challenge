@@ -9,6 +9,7 @@ import { sessionQueryOptions } from "@/features/auth/auth-api";
 import { favoritesQueryOptions, useToggleFavorite } from "@/features/favorites/favorites-api";
 import { multiplyEth, type NftDetail } from "@/features/nft-detail/nft-detail-data";
 import { cartQueryOptions, guestId, useCartActions } from "@/features/cart/cart-api";
+import { NftImage } from "@/components/nft-image";
 
 export const Route = createFileRoute("/nft/$nftId")({ component: NftEntry });
 
@@ -110,10 +111,10 @@ function DetailContent({ nft }: { nft: NftDetail }) {
     <div className="nft-detail__top">
       <div className="nft-detail__gallery">
         <div className="nft-detail__thumbnails" aria-label="Galeria do NFT">
-          {nft.gallery.map((image, index) => <button key={index} type="button" className={selectedImage === index ? "is-selected" : ""} aria-label={image.alt} aria-pressed={selectedImage === index} onClick={() => setSelectedImage(index)}><img src={image.image} style={galleryImageStyle(image)} alt="" /></button>)}
+          {nft.gallery.map((image, index) => <button key={index} type="button" className={selectedImage === index ? "is-selected" : ""} aria-label={image.alt} aria-pressed={selectedImage === index} onClick={() => setSelectedImage(index)}><NftImage image={image.image} style={galleryImageStyle(image)} alt="" sizes="90px" /></button>)}
         </div>
         <div className="nft-detail__artwork">
-          <img src={nft.gallery[selectedImage].image} style={galleryImageStyle(nft.gallery[selectedImage])} alt={nft.gallery[selectedImage].alt} />
+          <NftImage image={nft.gallery[selectedImage].image} style={galleryImageStyle(nft.gallery[selectedImage])} alt={nft.gallery[selectedImage].alt} sizes="(max-width: 640px) 90vw, 45vw" fetchPriority="high" />
           <button ref={zoomTriggerRef} type="button" aria-label="Ampliar imagem" onClick={() => setZoomOpen(true)}><MagnifyingGlass size={22} /></button>
           <div className="nft-detail__gallery-dots" role="group" aria-label="Galeria do NFT">
             {nft.gallery.map((image, index) => <button key={index} type="button" className={selectedImage === index ? "is-selected" : ""} aria-label={image.alt} aria-pressed={selectedImage === index} onClick={() => setSelectedImage(index)} />)}
@@ -136,10 +137,10 @@ function DetailContent({ nft }: { nft: NftDetail }) {
     <div className="nft-detail__below">
       <div className="nft-detail__tabs" role="tablist" aria-label="Informações do NFT"><button type="button" role="tab" aria-selected={activeTab === "details"} className={activeTab === "details" ? "is-selected" : ""} onClick={() => setActiveTab("details")}>Detalhes do NFT</button><button type="button" role="tab" aria-selected={activeTab === "reviews"} className={activeTab === "reviews" ? "is-selected" : ""} onClick={() => setActiveTab("reviews")}>Avaliações de colecionadores ({nft.reviewCount})</button></div>
       {activeTab === "details" ? <div className="nft-detail__prose"><p>{nft.details[0]}</p><p>{nft.details[1]}</p><strong>Rede:</strong><p>Cunhado na {nft.network} com procedência imutável e metadados armazenados no IPFS.</p><strong>Contrato:</strong><p>Direitos autorais do criador: 5% nas vendas secundárias, pagos automaticamente pelos mercados compatíveis.</p><strong>Direitos autorais:</strong><p>Contrato inteligente verificado.</p></div> : <div className="nft-detail__reviews" role="tabpanel">{nft.reviews.map((review) => <article key={review.author}><strong>{review.author}</strong><span aria-label={`${review.rating} de 5 estrelas`}>★★★★★</span><p>{review.text}</p></article>)}</div>}
-      <section className="nft-detail__related" aria-labelledby="related-title"><h2 id="related-title">Mais desta coleção</h2><div>{nft.related.map((item) => <Link to="/nft/$nftId" params={{ nftId: item.id }} key={item.id}><span><img src={item.image} alt="" /></span><strong>{item.name} #{item.tokenId}</strong><b>{item.priceEth} ETH</b></Link>)}</div></section>
+      <section className="nft-detail__related" aria-labelledby="related-title"><h2 id="related-title">Mais desta coleção</h2><div>{nft.related.map((item) => <Link to="/nft/$nftId" params={{ nftId: item.id }} key={item.id}><span><NftImage image={item.image} alt="" sizes="25vw" /></span><strong>{item.name} #{item.tokenId}</strong><b>{item.priceEth} ETH</b></Link>)}</div></section>
     </div>
     <div className="nft-detail__mobile-buy"><div><span>Qtd.</span><QuantityControl quantity={quantity} available={remainingToAdd} onChange={setQuantity} /><strong>{totalPrice} ETH</strong></div><div><button className="nft-detail__buy" type="button" disabled={remainingToAdd < quantity || cart.isPending || cartActions.add.isPending} onClick={() => addToCart(true)}>Comprar NFT</button><button className="nft-detail__mobile-cart" type="button" disabled={remainingToAdd < quantity || cart.isPending || cartActions.add.isPending} aria-label="Adicionar ao carrinho" onClick={() => addToCart(false)}><ShoppingCart size={22} /></button></div></div>
-    {zoomOpen && <div className="nft-detail__zoom" role="dialog" aria-modal="true" aria-label="Imagem ampliada" onClick={() => setZoomOpen(false)}><button ref={zoomCloseRef} type="button" aria-label="Fechar imagem ampliada" onClick={() => setZoomOpen(false)}><X size={24} /></button><div className="nft-detail__zoom-artwork" onClick={(event) => event.stopPropagation()}><img src={nft.gallery[selectedImage].image} style={galleryImageStyle(nft.gallery[selectedImage])} alt={nft.gallery[selectedImage].alt} /></div></div>}
+    {zoomOpen && <div className="nft-detail__zoom" role="dialog" aria-modal="true" aria-label="Imagem ampliada" onClick={() => setZoomOpen(false)}><button ref={zoomCloseRef} type="button" aria-label="Fechar imagem ampliada" onClick={() => setZoomOpen(false)}><X size={24} /></button><div className="nft-detail__zoom-artwork" onClick={(event) => event.stopPropagation()}><NftImage image={nft.gallery[selectedImage].image} style={galleryImageStyle(nft.gallery[selectedImage])} alt={nft.gallery[selectedImage].alt} sizes="90vw" /></div></div>}
   </section>;
 }
 

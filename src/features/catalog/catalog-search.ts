@@ -2,7 +2,7 @@ import type { SearchSchemaInput } from "@tanstack/react-router";
 
 export type CatalogTab = "all" | "new" | "trending";
 export type CatalogSort = "recent" | "price-asc" | "price-desc";
-export type CatalogMockScenario = "slow" | "error" | "offline" | "out-of-order";
+export type CatalogMockScenario = "slow" | "error" | "offline" | "out-of-order" | "empty";
 
 export interface CatalogSearch {
   q: string;
@@ -41,7 +41,7 @@ export function parseCatalogSearch(search: Record<string, unknown>): CatalogSear
   const minPrice = price(search.minPrice, defaultCatalogSearch.minPrice);
   const maxPrice = price(search.maxPrice, defaultCatalogSearch.maxPrice);
   const page = Number(search.page);
-  const mock = oneOf(search.mock, ["slow", "error", "offline", "out-of-order"] as const, "slow");
+  const mock = oneOf(search.mock, ["slow", "error", "offline", "out-of-order", "empty"] as const, "slow");
 
   return {
     q: typeof search.q === "string" ? search.q.slice(0, 120) : defaultCatalogSearch.q,

@@ -9,6 +9,8 @@ import { defaultCatalogSearch } from "@/features/catalog/catalog-search";
 import { cartQueryOptions, guestId, quoteQueryOptions, useCartActions } from "./cart-api";
 import type { QuotedItem } from "./cart-types";
 import type { NftUpdatedEvent } from "@/features/realtime/realtime-types";
+import { Input } from "@/components/ui/input";
+import { NftImage } from "@/components/nft-image";
 
 function apiMessage(error: unknown, fallback: string) {
   return isAxiosError<{ message?: string }>(error) ? error.response?.data?.message ?? fallback : fallback;
@@ -74,7 +76,7 @@ export function CartPage() {
         {(cart.isError || quote.isError) && <div className="cart-page__state" role="alert"><h2>Não foi possível carregar o carrinho</h2><p>Verifique a conexão e tente novamente.</p><button type="button" onClick={() => { void cart.refetch(); void quote.refetch(); }}>Tentar novamente</button></div>}
         {quoteReady && items.length === 0 && <div className="cart-page__state"><h2>Seu carrinho está vazio</h2><p>Escolha uma obra para começar sua coleção.</p><Link to="/">Explorar NFTs</Link></div>}
         {quoteReady && items.map((item) => <article className="cart-page__item" key={`${item.nftId}:${item.editionId}`}>
-          <Link className="cart-page__art" to="/nft/$nftId" params={{ nftId: item.nftId }}><img src={item.image} alt={`${item.name} #${item.tokenId}`} /></Link>
+          <Link className="cart-page__art" to="/nft/$nftId" params={{ nftId: item.nftId }}><NftImage image={item.image} alt={`${item.name} #${item.tokenId}`} sizes="100px" /></Link>
           <div className="cart-page__item-name"><Link to="/nft/$nftId" params={{ nftId: item.nftId }}>{item.name} #{item.tokenId}</Link><small className="cart-page__desktop-token">ID do token: #{item.tokenId}</small><small className="cart-page__mobile-edition">Edição: {item.edition}</small><strong className="cart-page__mobile-price">{item.lineTotalEth} ETH</strong></div>
           <span className="cart-page__unit-price">{item.unitPriceEth} ETH</span>
           <div className="cart-page__quantity" role="group" aria-label={`Quantidade de ${item.name} #${item.tokenId}`}><button type="button" onClick={() => changeQuantity(item, item.quantity - 1)} disabled={busy || item.quantity <= 1} aria-label={`Diminuir ${item.name}`}><Minus size={13} weight="bold" /></button><span aria-live="polite">{item.quantity}</span><button type="button" onClick={() => changeQuantity(item, item.quantity + 1)} disabled={busy || item.quantity >= item.available} aria-label={`Aumentar ${item.name}`}><Plus size={13} weight="bold" /></button></div>
@@ -87,7 +89,7 @@ export function CartPage() {
       </section>
       <aside className="cart-page__summary" aria-labelledby="cart-summary-title">
         <h2 id="cart-summary-title">Resumo da carteira</h2>
-        <form className="cart-page__coupon" onSubmit={submitCoupon}><label htmlFor="coupon-code">Código promocional</label><div><input id="coupon-code" type="text" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} placeholder="Digite o código promocional..." disabled={busy || items.length === 0} /><button type="submit" disabled={busy || !couponInput.trim() || items.length === 0}>Aplicar</button></div></form>
+        <form className="cart-page__coupon" onSubmit={submitCoupon}><label htmlFor="coupon-code">Código promocional</label><div><Input id="coupon-code" type="text" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} placeholder="Digite o código promocional..." disabled={busy || items.length === 0} /><button type="submit" disabled={busy || !couponInput.trim() || items.length === 0}>Aplicar</button></div></form>
         {couponError && <p className="cart-page__coupon-error" role="alert">{couponError}</p>}
         {cart.data?.coupon && <div className="cart-page__applied"><span>Cupom {cart.data.coupon} aplicado</span><button type="button" onClick={removeCoupon} disabled={busy}>Remover</button></div>}
         {quoteReady ? <dl className="cart-page__totals"><div><dt>Subtotal</dt><dd>{quote.data.subtotalEth} ETH</dd></div><div><dt>Desconto do lançamento</dt><dd>(-) {quote.data.discountEth} ETH</dd></div><div><dt>Taxa de rede</dt><dd>{quote.data.networkFeeEth} ETH<small>Taxa estimada</small></dd></div><div className="cart-page__grand-total"><dt>Total</dt><dd>{quote.data.totalEth} ETH</dd></div></dl> : <p className="cart-page__quote-unavailable" role="status">Valores indisponíveis até a cotação ser carregada.</p>}
@@ -95,6 +97,6 @@ export function CartPage() {
         <Link className="cart-page__continue" to="/">Continuar explorando</Link>
       </aside>
     </div>
-    {suggested.length > 0 && <section className="cart-page__suggestions" aria-labelledby="cart-suggestions-title"><h2 id="cart-suggestions-title">Colecionadores também viram</h2><div>{suggested.map((nft) => <Link to="/nft/$nftId" params={{ nftId: nft.id }} key={nft.id}><span><img src={nft.image} alt="" /></span><strong>{nft.name} #{nft.tokenId}</strong><b>{nft.priceEth} ETH</b></Link>)}</div><div className="cart-page__dots" aria-hidden="true"><i /><i /><i /></div></section>}
+    {suggested.length > 0 && <section className="cart-page__suggestions" aria-labelledby="cart-suggestions-title"><h2 id="cart-suggestions-title">Colecionadores também viram</h2><div>{suggested.map((nft) => <Link to="/nft/$nftId" params={{ nftId: nft.id }} key={nft.id}><span><NftImage image={nft.image} alt="" sizes="(max-width: 640px) 33vw, 20vw" /></span><strong>{nft.name} #{nft.tokenId}</strong><b>{nft.priceEth} ETH</b></Link>)}</div><div className="cart-page__dots" aria-hidden="true"><i /><i /><i /></div></section>}
   </div>;
 }

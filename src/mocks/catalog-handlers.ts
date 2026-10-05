@@ -74,7 +74,7 @@ export const catalogHandlers = [
       (!networks.length || networks.includes(nft.network)) &&
       Number(nft.priceEth) >= search.minPrice && Number(nft.priceEth) <= search.maxPrice,
     );
-    const sorted = sortNfts(matches, search.tab, search.sort);
+    const sorted = search.mock === "empty" ? [] : sortNfts(matches, search.tab, search.sort);
     const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
     const page = Math.min(search.page, pageCount);
     const response: CatalogResponse = {

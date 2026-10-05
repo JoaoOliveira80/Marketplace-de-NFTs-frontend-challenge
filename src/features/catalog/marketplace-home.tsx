@@ -17,6 +17,7 @@ import {
 } from "@/features/catalog/catalog-data";
 import { catalogQueryOptions } from "@/features/catalog/catalog-api";
 import type { CatalogSearch, CatalogTab } from "@/features/catalog/catalog-search";
+import { NftImage } from "@/components/nft-image";
 
 const networkLabels = ["Ethereum", "Polygon", "Solana"] as const;
 
@@ -153,8 +154,8 @@ export function MarketplaceHome() {
           </a>
         </div>
         <div className="marketplace-hero__art-wrap">
-          <img className="marketplace-hero__art" src={activeSlide.image} alt={`${activeSlide.name} #${activeSlide.tokenId}`} />
-          <img className="marketplace-hero__secondary-art" src="/nfts/sage-nomad.png" alt="Sage Nomad em destaque" />
+          <NftImage className="marketplace-hero__art" image={activeSlide.image} alt={`${activeSlide.name} #${activeSlide.tokenId}`} sizes="(max-width: 640px) 80vw, 45vw" />
+          <NftImage className="marketplace-hero__secondary-art" image="/nfts/sage-nomad.png" alt="Sage Nomad em destaque" sizes="(max-width: 640px) 40vw, 20vw" />
           <div className="marketplace-hero__dots" aria-label="Destaques do marketplace">
             {slides.map((slide, index) => (
               <button
@@ -422,7 +423,7 @@ function FeaturedCollection() {
     <article className="featured-collection">
       <h2>NFT EM DESTAQUE</h2>
       <p>OFERTA LIMITADA</p>
-      <img src="/nfts/sage-nomad.png" alt="Sage Nomad com chapéu e moletom violeta" />
+      <NftImage image="/nfts/sage-nomad.png" alt="Sage Nomad com chapéu e moletom violeta" />
     </article>
   );
 }
@@ -432,7 +433,7 @@ function NftCard({ nft }: { nft: CatalogNft }) {
     <article className="nft-card">
       <Link aria-label={`Ver detalhes de ${nft.name} #${nft.tokenId}`} className="nft-card__link" params={{ nftId: nft.id }} to="/nft/$nftId">
         <div className="nft-card__image-wrap">
-          <img className="nft-card__image" src={nft.image} alt={`${nft.name} #${nft.tokenId}`} loading="lazy" />
+          <NftImage className="nft-card__image" image={nft.image} alt={`${nft.name} #${nft.tokenId}`} loading="lazy" sizes="(max-width: 640px) 50vw, (max-width: 1100px) 30vw, 20vw" />
           {nft.id === featuredNft.id && <span className="nft-card__favorite-mark" aria-hidden="true"><Heart size={16} weight="regular" /></span>}
           {nft.available === 0 ? <span className="nft-card__badge">ESGOTADO</span> : nft.isRare && <span className="nft-card__badge">RARO</span>}
         </div>
@@ -468,7 +469,7 @@ function HomeEditorialSections() {
     <div className="home-editorial">
       <section className="home-promos" aria-label="Destaques Kurio">
         <article className="home-promo">
-          <img src="/nfts/emerald-ape.png" alt="Emerald Ape usando óculos e jaqueta verde" loading="lazy" />
+          <NftImage image="/nfts/emerald-ape.png" alt="Emerald Ape usando óculos e jaqueta verde" loading="lazy" />
           <div>
             <h2>Lançamentos gênesis de edição limitada</h2>
             <p>Colecione edições escassas diretamente dos criadores antes da revelação pública.</p>
@@ -476,7 +477,7 @@ function HomeEditorialSections() {
           </div>
         </article>
         <article className="home-promo home-promo--reverse">
-          <img src="/nfts/ivory-baron.png" alt="Ivory Baron, arte digital da coleção Kurio" loading="lazy" />
+          <NftImage image="/nfts/ivory-baron.png" alt="Ivory Baron, arte digital da coleção Kurio" loading="lazy" />
           <div>
             <h2>Arte digital selecionada e muito mais</h2>
             <p>Explore novos artistas, coleções verificadas e obras digitais que definem a cultura.</p>
@@ -491,7 +492,7 @@ function HomeEditorialSections() {
         <div className="home-journal__grid">
           {articles.map((article) => (
             <article className="journal-card" key={article.title}>
-              <img src={article.image} alt="" loading="lazy" />
+              <NftImage image={article.image} alt="" loading="lazy" />
               <div className="journal-card__body">
                 <p className="journal-card__meta">{article.date}&nbsp; | &nbsp;{article.time}</p>
                 <h3>{article.title}</h3>

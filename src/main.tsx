@@ -11,8 +11,6 @@ import "./index.css";
 async function start() {
   const { worker } = await import("./mocks/browser");
   await worker.start({ onUnhandledRequest: "bypass" });
-  const { startRealtime } = await import("./features/realtime/realtime-client");
-  startRealtime(queryClient);
 
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
@@ -21,6 +19,8 @@ async function start() {
       </QueryClientProvider>
     </StrictMode>,
   );
+
+  void import("./features/realtime/realtime-client").then(({ startRealtime }) => startRealtime(queryClient));
 }
 
 void start();

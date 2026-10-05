@@ -4,7 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { Eye, EyeSlash, FacebookLogo, GoogleLogo } from "@phosphor-icons/react";
 import { catalogCategories, catalogNfts } from "@/features/catalog/catalog-data";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useRegister, useSignIn, type ApiFormError } from "./auth-api";
+import { NftImage } from "@/components/nft-image";
 
 type Mode = "login" | "register";
 type Field = "name" | "email" | "password" | "confirmPassword";
@@ -56,7 +58,7 @@ export function AuthPage({ mode, returnTo, expired }: { mode: Mode; returnTo: st
     <div className="auth-field">
       <label htmlFor={`auth-${key}`}>{label}</label>
       <div className="auth-field__control">
-        <input
+        <Input
           autoFocus={key === (mode === "register" ? "name" : "email")}
           id={`auth-${key}`}
           type={type === "password" && passwordVisible ? "text" : type}
@@ -74,10 +76,10 @@ export function AuthPage({ mode, returnTo, expired }: { mode: Mode; returnTo: st
 
   return <section className="auth-page" aria-labelledby="auth-heading">
     <div className="auth-page__preview" aria-hidden="true">
-      <div className="auth-page__hero"><div><span>Bem-vindo à Kurio</span><h2>SEJA DONO DO FUTURO<br />DA ARTE DIGITAL</h2><p>Descubra NFTs selecionados de criadores emergentes e consagrados. Colecione arte digital verificada.</p><span className="auth-page__explore">EXPLORAR</span></div><img src="/nfts/emerald-ape.png" alt="" /></div>
+      <div className="auth-page__hero"><div><span>Bem-vindo à Kurio</span><h2>SEJA DONO DO FUTURO<br />DA ARTE DIGITAL</h2><p>Descubra NFTs selecionados de criadores emergentes e consagrados. Colecione arte digital verificada.</p><span className="auth-page__explore">EXPLORAR</span></div><NftImage image="/nfts/emerald-ape.png" alt="" sizes="(max-width: 640px) 40vw, 25vw" /></div>
       <div className="auth-page__catalog">
         <div className="auth-page__filters"><strong>Coleções</strong>{catalogCategories.map((category) => <span key={category}>{category}<b>({catalogNfts.filter((nft) => nft.category === category).length})</b></span>)}<strong>Faixa de preço</strong><div className="auth-page__price-track" /><small>Preço: 0,02 – 12,30 ETH</small><span className="auth-page__apply">Aplicar</span><strong>Rede</strong><span>Ethereum</span><span>Polygon</span><span>Solana</span></div>
-        <div className="auth-page__catalog-main"><div className="auth-page__catalog-toolbar"><span>Todos os NFTs&nbsp; Novos lançamentos&nbsp; Em alta</span><span>Ordenar por: Listados recentemente</span></div><div className="auth-page__catalog-grid">{catalogNfts.slice(0, 9).map((nft) => <div className="auth-page__catalog-card" key={nft.id}><div><img src={nft.image} alt="" /></div><span>{nft.name} #{nft.tokenId}</span><strong>{nft.priceEth} ETH</strong></div>)}</div></div>
+        <div className="auth-page__catalog-main"><div className="auth-page__catalog-toolbar"><span>Todos os NFTs&nbsp; Novos lançamentos&nbsp; Em alta</span><span>Ordenar por: Listados recentemente</span></div><div className="auth-page__catalog-grid">{catalogNfts.slice(0, 9).map((nft) => <div className="auth-page__catalog-card" key={nft.id}><div><NftImage image={nft.image} alt="" sizes="(max-width: 640px) 30vw, 16vw" /></div><span>{nft.name} #{nft.tokenId}</span><strong>{nft.priceEth} ETH</strong></div>)}</div></div>
       </div>
     </div>
     <div className="auth-page__panel">

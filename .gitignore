@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+
+/tests
+# Lighthouse output is kept as deliverable evidence; temporary staging is ignored.
+/lighthouse/.reports-*.tmp/

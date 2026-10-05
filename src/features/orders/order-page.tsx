@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Clock, WarningCircle } from "@phosphor-icons/react";
 import { sessionQueryOptions } from "@/features/auth/auth-api";
 import { clearOrderIntent, orderQueryOptions, type Order } from "./order-api";
+import { NftImage } from "@/components/nft-image";
 
 function Receipt({ order }: { order: Order }) {
   const { quote } = order.receipt;
@@ -20,7 +21,7 @@ function Receipt({ order }: { order: Order }) {
       <h2>Detalhes da transação</h2>
       <div className="order-receipt__head"><span>NFTs</span><span>Edições</span><span>Subtotal</span></div>
       {quote.items.map((item) => <div className="order-receipt__item" key={`${item.nftId}:${item.editionId}`}>
-        <img src={item.image} alt="" />
+        <NftImage image={item.image} alt="" sizes="72px" />
         <div><strong>{item.name} #{item.tokenId}</strong><small>ID do token: #{item.tokenId}</small></div>
         <span>(x {item.quantity})</span><b>{item.lineTotalEth} ETH</b>
       </div>)}

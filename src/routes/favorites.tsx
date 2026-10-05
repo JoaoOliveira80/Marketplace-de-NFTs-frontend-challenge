@@ -4,6 +4,7 @@ import { isAxiosError } from "axios";
 import { Heart } from "@phosphor-icons/react";
 import { sessionQueryOptions } from "@/features/auth/auth-api";
 import { favoritesQueryOptions } from "@/features/favorites/favorites-api";
+import { NftImage } from "@/components/nft-image";
 
 export const Route = createFileRoute("/favorites")({
   beforeLoad: async ({ context, location }) => {
@@ -32,6 +33,6 @@ function FavoritesPage() {
     {favorites.isPending ? <div className="favorites-page__skeleton shimmer" aria-busy="true" aria-label="Carregando favoritos" /> :
       favorites.isError ? <div role="alert"><p>Não foi possível carregar seus favoritos.</p><button type="button" onClick={() => void favorites.refetch()}>Tentar novamente</button></div> :
       favorites.data.items.length === 0 ? <div className="favorites-page__empty"><p>Você ainda não salvou nenhum NFT.</p><Link to="/">Explorar coleção</Link></div> :
-      <div className="favorites-page__grid">{favorites.data.items.map((nft) => <Link key={nft.id} to="/nft/$nftId" params={{ nftId: nft.id }}><img src={nft.image} alt="" /><span>{nft.name} #{nft.tokenId}</span><strong>{nft.priceEth} ETH</strong></Link>)}</div>}
+      <div className="favorites-page__grid">{favorites.data.items.map((nft) => <Link key={nft.id} to="/nft/$nftId" params={{ nftId: nft.id }}><NftImage image={nft.image} alt="" sizes="(max-width: 640px) 50vw, 25vw" /><span>{nft.name} #{nft.tokenId}</span><strong>{nft.priceEth} ETH</strong></Link>)}</div>}
   </section>;
 }

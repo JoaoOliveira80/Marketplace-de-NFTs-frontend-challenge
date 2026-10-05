@@ -12,6 +12,12 @@ import { ethString, ethUnits } from "@/features/cart/eth";
 const realtime = ws.link(`${location.origin.replace(/^http/, "ws")}/`);
 type Connection = Parameters<Parameters<typeof realtime.addEventListener>[1]>[0]["client"];
 const clients = new Map<Connection, { userId: string | null; emit: (name: string, payload: unknown) => void }>();
+const scenarioTimers = new Set<number>();
+
+export function clearRealtimeScenarioTimers() {
+  for (const timer of scenarioTimers) window.clearTimeout(timer);
+  scenarioTimers.clear();
+}
 
 function userForToken(token: string) {
   if (!token) return null;
@@ -46,7 +52,8 @@ export const realtimeHandlers = [
       const scenarioKey = item && `kurio-${scenario}-${scope}-${item.nftId}-${item.editionId}`;
       if (item && scenarioKey && !localStorage.getItem(scenarioKey)) {
         localStorage.setItem(scenarioKey, "scheduled");
-        window.setTimeout(() => {
+        const timer = window.setTimeout(() => {
+          scenarioTimers.delete(timer);
           const nft = catalogNfts.find((entry) => entry.id === item.nftId);
           const edition = nft && nftEditions(nft).find((entry) => entry.id === item.editionId);
           if (!edition) return;
@@ -54,6 +61,7 @@ export const realtimeHandlers = [
           const event = updateEdition(item.nftId, item.editionId, priceEth, scenario === "realtime-sold-out" ? 0 : edition.available);
           if (event) { localStorage.setItem(scenarioKey, "done"); publishNft(event); }
         }, 1800);
+        scenarioTimers.add(timer);
       }
     }
   }),
