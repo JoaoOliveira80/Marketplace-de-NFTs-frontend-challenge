@@ -36,7 +36,7 @@ Também é possível criar contas de teste pela tela de cadastro. Os dados ficam
 
 Os cenários são selecionados pelo parâmetro `mock` na URL. Exemplos:
 
-- Catálogo: `/?mock=empty`, `/?mock=slow`, `/?mock=error`, `/?mock=offline`, `/?mock=out-of-order`.
+- Catálogo: `/?mock=empty`, `/?mock=slow`, `/?mock=error`, `/?mock=retry-once` (falha nas tentativas automáticas e recupera ao tentar novamente), `/?mock=offline`, `/?mock=out-of-order`.
 - Sessão/favoritos/perfil/carteira: `?mock=session-expired`, `?mock=favorite-error`, `?mock=profile-error`, `?mock=wallet-error`, `?mock=wallet-refused`.
 - Carrinho/cupom/pedido: `?mock=cart-error`, `?mock=order-refused`, `?mock=order-timeout`, `?mock=order-pending`.
 - Tempo real: `?mock=realtime-price`, `?mock=realtime-sold-out`. Abra a rota do checkout com o item correspondente no carrinho; o socket simulado publica a mudança enquanto a página está aberta.
@@ -79,13 +79,13 @@ O reset apaga todas as chaves `kurio-*` de `localStorage` e `sessionStorage`, ca
 | `npm run test:lighthouse` | Testa mediana e validação dos relatórios Lighthouse com fixtures sintéticas marcadas como teste |
 | `npm run lighthouse` | Faz build e roda 12 auditorias Lighthouse reais (2 páginas × 2 perfis × 3 execuções) |
 
-Os testes principais cobrem os 12 grupos do enunciado em desktop e mobile. Os arquivos PNG de baseline, traces em falha e relatórios HTML ficam em `tests/e2e/__screenshots__/`, `test-results/` e `playwright-report/`, conforme a finalidade; apenas os baselines versionáveis são parte dos testes-fonte. A verificação responsiva adicional usa 768px.
+A suíte E2E cobre os 12 grupos do enunciado: filtros combinados, paginação e histórico; detalhe/404; cadastro, sessão expirada, logout e isolamento entre usuários; favoritos e rollback; carrinho visitante, quantidade, remoção, cupom, refresh e merge após login; compra confirmada, recusada, duplo clique, timeout e recuperação; perfil, avatar, senha e carteira; preço/esgotamento via Socket.IO, duplicatas, eventos antigos e reconexão; foco por teclado, validação, skeleton, erro e retry recuperável. As 29 jornadas executam em Chromium desktop e mobile. O teste contra `vite preview` confirma acesso direto ao detalhe e à arte WebP. Há baselines Playwright para início, detalhe, carrinho e checkout em ambos os viewports. Os PNGs versionáveis ficam em `tests/e2e/__screenshots__/`; traces em falha e relatórios HTML são gerados em `test-results/` e `playwright-report/`.
 
 ## Lighthouse
 
 `npm run lighthouse` usa uma build de produção, abre um preview local, executa a página inicial e `/nft/emerald-ape-0042` em perfis mobile e desktop três vezes cada e calcula medianas de Performance, Accessibility, Best Practices, SEO, LCP, CLS e TBT. Cada relatório HTML/JSON e os metadados de ambiente são gravados em uma nova pasta `lighthouse/reports-<data>/`. Chrome é encerrado a cada auditoria e o preview é encerrado mesmo quando uma execução falha. Em caso de erro, a pasta temporária e qualquer resumo parcial são removidos.
 
-Consulte a [medição local mais recente](lighthouse/reports-2026-10-05T15-53-25-328Z/summary.md) e os limites que ficaram pendentes em [`lighthouse/README.md`](lighthouse/README.md).
+Consulte a [medição Lighthouse gerada em 05/10/2026](lighthouse/reports-2026-10-05T20-13-17-293Z/summary.md), com interpretação dos resultados e metas pendentes em [`lighthouse/README.md`](lighthouse/README.md).
 
 Defina `CHROME_PATH` quando for necessário indicar um Chrome específico. Os testes unitários de `scripts/summarize-lighthouse.mjs` usam resultados sintéticos apenas para verificar o cálculo; esses fixtures nunca são apresentados como medições do produto. Metas do desafio: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95 e SEO ≥ 90.
 

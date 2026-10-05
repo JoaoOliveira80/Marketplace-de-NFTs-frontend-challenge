@@ -8,6 +8,11 @@ import { nftEditions } from "./nft-inventory";
 import { currentCatalog } from "./realtime-state";
 
 const PAGE_SIZE = 9;
+let retryOnceFailuresRemaining = 2;
+
+export function resetCatalogScenarios() {
+  retryOnceFailuresRemaining = 2;
+}
 
 function sortNfts(items: CatalogNft[], tab: string, sort: string) {
   const sorted = [...items];
@@ -65,6 +70,10 @@ export const catalogHandlers = [
 
     if (search.mock === "offline") return HttpResponse.error();
     if (search.mock === "error") return HttpResponse.json({ message: "O catálogo está temporariamente indisponível." }, { status: 503 });
+    if (search.mock === "retry-once" && retryOnceFailuresRemaining > 0) {
+      retryOnceFailuresRemaining -= 1;
+      return HttpResponse.json({ message: "O catálogo está temporariamente indisponível." }, { status: 503 });
+    }
 
     const q = search.q.trim().toLocaleLowerCase("pt-BR");
     const networks = search.network.split(",").filter(Boolean);

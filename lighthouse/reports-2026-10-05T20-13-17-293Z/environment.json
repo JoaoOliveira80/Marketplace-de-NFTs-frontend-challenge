@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-10-05T20:15:48.905Z",
+  "node": "v22.17.1",
+  "lighthouse": "12.8.2",
+  "chrome": "HeadlessChrome/154.0.0.0",
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "previewBaseUrl": "http://127.0.0.1:65311",
+  "pages": [
+    "/",
+    "/nft/emerald-ape-0042"
+  ],
+  "profiles": [
+    "mobile",
+    "desktop"
+  ],
+  "runsPerPageProfile": 3,
+  "auditCount": 12
+}
