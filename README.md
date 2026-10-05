@@ -2,7 +2,7 @@
 
 Aplicação demonstrativa para descoberta e compra simulada de NFTs. O frontend usa Vite, React, TypeScript, TanStack Router/Query, Axios, MSW, Socket.IO, Tailwind CSS v4, primitives Base UI compatíveis com shadcn/ui, Playwright e Lighthouse. As artes servidas no app usam WebP responsivo em 250/500/1000 px.
 
-> **Deploy público:** a configuração para Vercel está pronta, mas a publicação e a URL pública ainda dependem da conta do candidato. Nenhum serviço externo foi conectado nesta cópia.
+> **Demonstração pública:** [marketplace-de-nfts.vercel.app](https://marketplace-de-nfts.vercel.app/). A aplicação usa dados, autenticação e pagamentos simulados no navegador, inclusive em produção.
 
 ## Requisitos
 
@@ -91,9 +91,29 @@ Defina `CHROME_PATH` quando for necessário indicar um Chrome específico. Os te
 
 ## Publicar na Vercel
 
-1. Importe este repositório na Vercel e selecione o preset Vite.
-2. Use `npm run build` como comando de build e `dist` como diretório de saída.
-3. Mantenha `vercel.json` na raiz: o rewrite encaminha as rotas de cliente a `/index.html`.
-4. Publique e valide a home, um detalhe de NFT e refresh em `/nft/emerald-ape-0042`.
+1. Faça commit e push da versão que será entregue ao repositório no GitHub.
+2. Acesse [Novo projeto na Vercel](https://vercel.com/new), conecte o GitHub e importe este repositório.
+3. Confira as configurações antes de clicar em **Deploy**:
 
-A aplicação não precisa de variáveis de ambiente para o modo mock atual. A URL pública deve ser acrescentada a este README depois da publicação pela conta do candidato.
+| Configuração | Valor |
+| --- | --- |
+| Framework Preset | Vite |
+| Root Directory | Raiz do repositório, onde está o `package.json` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Install Command | Automático |
+| Node.js Version | 22.x |
+| Variáveis de ambiente | Nenhuma necessária para o modo mock atual |
+
+Mantenha `vercel.json` na raiz: o rewrite encaminha as rotas de cliente a `/index.html`, permitindo abrir e atualizar links internos diretamente. O arquivo `public/mockServiceWorker.js` é incluído na build e os mocks MSW são iniciados também em produção. Não é necessário configurar um backend para esta demonstração.
+
+Referência: [Vite na Vercel e configuração de rotas SPA](https://vercel.com/docs/frameworks/frontend/vite).
+
+### Conferência após a publicação
+
+- Abra a URL pública em uma janela anônima e confirme que o avaliador consegue acessar a aplicação.
+- Confira a home, as imagens dos NFTs e os filtros em desktop e mobile.
+- Abra `/nft/emerald-ape-0042` diretamente e atualize a página para conferir o rewrite.
+- Entre com `nova@kurio.dev` / `Kurio123!` e percorra carrinho, checkout e confirmação de compra simulada.
+
+Na entrega, informe o endereço da aplicação na Vercel e o link do repositório. Os dados locais são separados por origem; contas criadas e carrinhos no localhost não são transferidos para o domínio publicado.
